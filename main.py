@@ -17,7 +17,7 @@ hotels: List[Dict[str, Any]] = [
 ]
 
 
-@app.get("/hotels")
+@app.get("/hotels", summary="Получить список отелей")
 def get_hotels(
     id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
@@ -32,7 +32,7 @@ def get_hotels(
     return hotels_
 
 
-@app.post("/hotels")
+@app.post("/hotels", summary="Создать новый отель")
 def create_hotel(title: str = Body(embed=True)):
     global hotels
     hotels.append(
@@ -44,11 +44,11 @@ def create_hotel(title: str = Body(embed=True)):
     return {"status": "OK"}
 
 
-@app.put("/hotels/{hotel_id}")
+@app.put("/hotels/{hotel_id}", summary="Обновить данные об отеле")
 def update_hotel(
     hotel_id: int,
-    title: str = Body(embed=True, description="Новое название отеля"),
-    name: str = Body(embed=True, description="Новое имя отеля"),
+    title: str = Body(description="Новое название отеля"),
+    name: str = Body(description="Новое имя отеля"),
 ):
     global hotels
     for hotel in hotels:
@@ -59,24 +59,28 @@ def update_hotel(
     return {"status": "Hotel not found"}, 404
 
 
-@app.patch("/hotels/{hotel_id}")
+@app.patch(
+    "/hotels/{hotel_id}",
+    summary="Частично обновить данные об отеле",
+    description="Позволяет обновить только некоторые поля отеля, такие как название или имя.",
+)
 def partial_update_hotel(
     hotel_id: int,
-    title: str | None = Body(None, embed=True, description="Новое название отеля"),
-    name: str | None = Body(None, embed=True, description="Новое имя отеля"),
+    title: str | None = Body(None, description="Новое название отеля"),
+    name: str | None = Body(None, description="Новое имя отеля"),
 ):
     global hotels
     for hotel in hotels:
         if hotel["id"] == hotel_id:
-            if title:
+            if title is not None:
                 hotel["title"] = title
-            if name:
+            if name is not None:
                 hotel["name"] = name
             return {"status": "OK"}
     return {"status": "Hotel not found"}, 404
 
 
-@app.delete("/hotels/{hotel_id}")
+@app.delete("/hotels/{hotel_id}", summary="Удалить отель")
 def delete_hotel(hotel_id: int):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
