@@ -1,6 +1,8 @@
 from typing import List, Dict, Any
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Query
+
+from schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -27,28 +29,25 @@ def get_hotels(
 
 
 @router.post("/", summary="Создать новый отель")
-def create_hotel(title: str = Body(embed=True)):
+def create_hotel(hotel_data: Hotel):
     global hotels
     hotels.append(
         {
             "id": hotels[-1]["id"] + 1,
-            "title": title,
+            "title": hotel_data.title,
+            "name": hotel_data.name,
         }
     )
     return {"status": "OK"}
 
 
 @router.put("/{hotel_id}", summary="Обновить данные об отеле")
-def update_hotel(
-    hotel_id: int,
-    title: str = Body(description="Новое название отеля"),
-    name: str = Body(description="Новое имя отеля"),
-):
+def update_hotel(hotel_id: int, hotel_data: Hotel):
     global hotels
     for hotel in hotels:
         if hotel["id"] == hotel_id:
-            hotel["title"] = title
-            hotel["name"] = name
+            hotel["title"] = hotel_data.title
+            hotel["name"] = hotel_data.name
             return {"status": "OK"}
     return {"status": "Hotel not found"}, 404
 
@@ -60,16 +59,15 @@ def update_hotel(
 )
 def partial_update_hotel(
     hotel_id: int,
-    title: str | None = Body(None, description="Новое название отеля"),
-    name: str | None = Body(None, description="Новое имя отеля"),
+    hotel_data: HotelPATCH,
 ):
     global hotels
     for hotel in hotels:
         if hotel["id"] == hotel_id:
-            if title is not None:
-                hotel["title"] = title
-            if name is not None:
-                hotel["name"] = name
+            if hotel_data.title is not None:
+                hotel["title"] = hotel_data.title
+            if hotel_data.name is not None:
+                hotel["name"] = hotel_data.name
             return {"status": "OK"}
     return {"status": "Hotel not found"}, 404
 
