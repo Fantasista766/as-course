@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 
 from fastapi import APIRouter, Body, Query
 
+from dependencies import PaginationDep
 from schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -20,10 +21,9 @@ hotels: List[Dict[str, Any]] = [
 
 @router.get("/", summary="Получить список отелей")
 def get_hotels(
+    pagination: PaginationDep,
     id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
-    page: int = Query(1, gt=0, description="Номер страницы"),
-    per_page: int = Query(3, gt=0, lt=100, description="Количество отелей на странице"),
 ) -> List[Dict[str, Any]]:
     hotels_: List[Dict[str, Any]] = []
     for hotel in hotels:
@@ -32,7 +32,12 @@ def get_hotels(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
-    return hotels_[(page - 1) * per_page : page * per_page]
+
+    if pagination.page is not None and pagination.per_page is not None:
+        return hotels_[(pagination.page - 1) * pagination.per_page :][
+            : pagination.per_page
+        ]
+    return hotels_
 
 
 @router.post("/", summary="Создать новый отель")
