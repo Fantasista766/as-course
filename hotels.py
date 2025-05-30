@@ -22,8 +22,8 @@ hotels: List[Dict[str, Any]] = [
 def get_hotels(
     id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
-    page: int = Query(1, description="Номер страницы"),
-    per_page: int = Query(3, description="Количество отелей на странице"),
+    page: int = Query(1, gt=0, description="Номер страницы"),
+    per_page: int = Query(3, gt=0, lt=100, description="Количество отелей на странице"),
 ) -> List[Dict[str, Any]]:
     hotels_: List[Dict[str, Any]] = []
     for hotel in hotels:
