@@ -8,8 +8,13 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 hotels: List[Dict[str, Any]] = [
-    {"id": 1, "title": "Sochi", "name": "Sochi"},
-    {"id": 2, "title": "Dubai", "name": "Dubai"},
+    {"id": 1, "title": "Сочи", "name": "sochi"},
+    {"id": 2, "title": "Дубай", "name": "dubai"},
+    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
+    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
+    {"id": 5, "title": "Москва", "name": "moscow"},
+    {"id": 6, "title": "Казань", "name": "kazan"},
+    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
 ]
 
 
@@ -17,6 +22,8 @@ hotels: List[Dict[str, Any]] = [
 def get_hotels(
     id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
+    page: int = Query(1, description="Номер страницы"),
+    per_page: int = Query(3, description="Количество отелей на странице"),
 ) -> List[Dict[str, Any]]:
     hotels_: List[Dict[str, Any]] = []
     for hotel in hotels:
@@ -25,7 +32,7 @@ def get_hotels(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
-    return hotels_
+    return hotels_[(page - 1) * per_page : page * per_page]
 
 
 @router.post("/", summary="Создать новый отель")
