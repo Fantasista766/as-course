@@ -1,8 +1,11 @@
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, Body, Query
+from sqlalchemy import insert
 
+from src.models.hotels import HotelsORM
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker
 from src.schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -41,34 +44,30 @@ def get_hotels(
 
 
 @router.post("/", summary="Создать новый отель")
-def create_hotel(
+async def create_hotel(
     hotel_data: Hotel = Body(
         openapi_examples={
             "1": {
                 "summary": "Sochi",
                 "value": {
-                    "title": "Holel Sochi 5 start near sea",
-                    "name": "Sochi near sea",
+                    "title": "Hotel Sochi 5 start near sea",
+                    "location": "ул. Моря, 1",
                 },
             },
             "2": {
                 "summary": "Dubai",
                 "value": {
                     "title": "Hotel Dubai 5 star with pool",
-                    "name": "Dubai luxury hotel",
+                    "location": "ул. Шейха, 2",
                 },
             },
         }
     )
 ):
-    global hotels
-    hotels.append(
-        {
-            "id": hotels[-1]["id"] + 1,
-            "title": hotel_data.title,
-            "name": hotel_data.name,
-        }
-    )
+    async with async_session_maker() as session:
+        add_hotel_stmt = insert(HotelsORM).values(**hotel_data.model_dump())
+        await session.execute(add_hotel_stmt)
+        await session.commit()
     return {"status": "OK"}
 
 
@@ -78,7 +77,7 @@ def update_hotel(hotel_id: int, hotel_data: Hotel):
     for hotel in hotels:
         if hotel["id"] == hotel_id:
             hotel["title"] = hotel_data.title
-            hotel["name"] = hotel_data.name
+            hotel["location"] = hotel_data.location
             return {"status": "OK"}
     return {"status": "Hotel not found"}, 404
 
@@ -97,8 +96,8 @@ def partial_update_hotel(
         if hotel["id"] == hotel_id:
             if hotel_data.title is not None:
                 hotel["title"] = hotel_data.title
-            if hotel_data.name is not None:
-                hotel["name"] = hotel_data.name
+            if hotel_data.location is not None:
+                hotel["location"] = hotel_data.location
             return {"status": "OK"}
     return {"status": "Hotel not found"}, 404
 
