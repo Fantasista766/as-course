@@ -1,7 +1,7 @@
-from typing import List, Dict, Any
+from typing import List
 
 from fastapi import APIRouter, Body, Query
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 
 from src.models.hotels import HotelsORM
 from src.api.dependencies import PaginationDep
@@ -11,36 +11,24 @@ from src.schemas.hotels import Hotel, HotelPATCH
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
-hotels: List[Dict[str, Any]] = [
-    {"id": 1, "title": "Сочи", "name": "sochi"},
-    {"id": 2, "title": "Дубай", "name": "dubai"},
-    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
-    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
-    {"id": 5, "title": "Москва", "name": "moscow"},
-    {"id": 6, "title": "Казань", "name": "kazan"},
-    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
-]
-
-
-@router.get("/", summary="Получить список отелей")
-def get_hotels(
+@router.get(
+    "/",
+    summary="Получить список отелей",
+)
+async def get_hotels(
     pagination: PaginationDep,
     id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
-) -> List[Dict[str, Any]]:
-    hotels_: List[Dict[str, Any]] = []
-    for hotel in hotels:
-        if id and hotel["id"] != id:
-            continue
-        if title and hotel["title"] != title:
-            continue
-        hotels_.append(hotel)
-
-    if pagination.page is not None and pagination.per_page is not None:
-        return hotels_[(pagination.page - 1) * pagination.per_page :][
-            : pagination.per_page
-        ]
-    return hotels_
+) -> List[Hotel]:
+    async with async_session_maker() as session:
+        query = select(HotelsORM)
+        result = await session.execute(query)
+        hotels = result.scalars().all()
+        return hotels
+    # if pagination.page is not None and pagination.per_page is not None:
+    #     return hotels_[(pagination.page - 1) * pagination.per_page :][
+    #         : pagination.per_page
+    #     ]
 
 
 @router.post("/", summary="Создать новый отель")
@@ -68,6 +56,7 @@ async def create_hotel(
         add_hotel_stmt = insert(HotelsORM).values(**hotel_data.model_dump())
         await session.execute(add_hotel_stmt)
         await session.commit()
+
     return {"status": "OK"}
 
 
