@@ -20,8 +20,14 @@ async def get_hotels(
     id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
 ) -> List[Hotel]:
+    per_page = pagination.per_page or 5
     async with async_session_maker() as session:
         query = select(HotelsORM)
+        if id:
+            query = query.filter_by(id=id)
+        if id:
+            query = query.filterS_by(title=title)
+        query = query.limit(per_page).offset((pagination.page - 1) * per_page)
         result = await session.execute(query)
         hotels = result.scalars().all()
         return hotels
