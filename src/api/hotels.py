@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Body, Query
-from sqlalchemy import insert, select
+from sqlalchemy import func, insert, select
 
 from src.models.hotels import HotelsORM
 from src.api.dependencies import PaginationDep
@@ -25,9 +25,11 @@ async def get_hotels(
     async with async_session_maker() as session:
         query = select(HotelsORM)
         if title:
-            query = query.filter(HotelsORM.title.icontains(title))
+            query.filter(func.lower(HotelsORM.title).contains(title.title().lower()))
         if location:
-            query = query.filter(HotelsORM.location.icontains(location))
+            query.filter(
+                func.lower(HotelsORM.location).contains(location.strip().lower())
+            )
 
         query = query.limit(per_page).offset((page - 1) * per_page)
         result = await session.execute(query)
