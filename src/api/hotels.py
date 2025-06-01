@@ -25,9 +25,9 @@ async def get_hotels(
     async with async_session_maker() as session:
         query = select(HotelsORM)
         if title:
-            query = query.filter(HotelsORM.title.contains(title))
+            query = query.filter(HotelsORM.title.icontains(title))
         if location:
-            query = query.filter(HotelsORM.location.contains(location))
+            query = query.filter(HotelsORM.location.icontains(location))
 
         query = query.limit(per_page).offset((page - 1) * per_page)
         result = await session.execute(query)
