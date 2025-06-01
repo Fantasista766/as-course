@@ -1,4 +1,4 @@
-from typing import Annotatede
+from typing import Annotated
 
 from fastapi import Depends, Query
 from pydantic import BaseModel

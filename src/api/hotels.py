@@ -17,24 +17,22 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 )
 async def get_hotels(
     pagination: PaginationDep,
-    id: int | None = Query(None, description="ID отеля"),
     title: str | None = Query(None, description="Название отеля"),
+    location: str | None = Query(None, description="Расположение отеля"),
 ) -> List[Hotel]:
     per_page = pagination.per_page or 5
+    page = pagination.page or 1
     async with async_session_maker() as session:
         query = select(HotelsORM)
-        if id:
-            query = query.filter_by(id=id)
-        if id:
-            query = query.filterS_by(title=title)
-        query = query.limit(per_page).offset((pagination.page - 1) * per_page)
+        if title:
+            query = query.filter(HotelsORM.title.contains(title))
+        if location:
+            query = query.filter(HotelsORM.location.contains(location))
+
+        query = query.limit(per_page).offset((page - 1) * per_page)
         result = await session.execute(query)
         hotels = result.scalars().all()
         return hotels
-    # if pagination.page is not None and pagination.per_page is not None:
-    #     return hotels_[(pagination.page - 1) * pagination.per_page :][
-    #         : pagination.per_page
-    #     ]
 
 
 @router.post("/", summary="Создать новый отель")
