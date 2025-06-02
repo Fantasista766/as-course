@@ -3,9 +3,10 @@ from typing import List
 from fastapi import APIRouter, Body, Query
 from sqlalchemy import insert, select
 
-from src.models.hotels import HotelsORM
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
+from src.models.hotels import HotelsORM
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -20,19 +21,21 @@ async def get_hotels(
     title: str | None = Query(None, description="Название отеля"),
     location: str | None = Query(None, description="Расположение отеля"),
 ) -> List[Hotel]:
-    per_page = pagination.per_page or 5
-    page = pagination.page or 1
     async with async_session_maker() as session:
-        query = select(HotelsORM)
-        if title:
-            query = query.filter(HotelsORM.title.icontains(title.strip()))
-        if location:
-            query = query.filter(HotelsORM.location.contains(location.strip()))
+        return await HotelsRepository(session).get_all()
+    # per_page = pagination.per_page or 5
+    # page = pagination.page or 1
+    # async with async_session_maker() as session:
+    #     query = select(HotelsORM)
+    #     if title:
+    #         query = query.filter(HotelsORM.title.icontains(title.strip()))
+    #     if location:
+    #         query = query.filter(HotelsORM.location.contains(location.strip()))
 
-        query = query.limit(per_page).offset((page - 1) * per_page)
-        result = await session.execute(query)
-        hotels = result.scalars().all()
-        return hotels
+    #     query = query.limit(per_page).offset((page - 1) * per_page)
+    #     result = await session.execute(query)
+    #     hotels = result.scalars().all()
+    #     return hotels
 
 
 @router.post("/", summary="Создать новый отель")
