@@ -1,11 +1,9 @@
 from typing import Any
 
 from fastapi import APIRouter, Body, Query
-from sqlalchemy import func, insert, select
 
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
-from src.models.hotels import HotelsORM
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
