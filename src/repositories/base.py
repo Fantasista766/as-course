@@ -1,5 +1,7 @@
 from typing import Any, Sequence
 
+from pydantic import BaseModel
+
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +26,9 @@ class BaseRepository:
 
         return result.scalars().one_or_none()
 
-    async def add(self, *args, **kwargs):
-        add_model_stmt = insert(self.model).values(kwargs)
-        return await self.session.execute(add_model_stmt)
+    async def add(self, data: BaseModel):
+        add_model_stmt = (
+            insert(self.model).values(**data.model_dump()).returning(self.model)
+        )
+        result = await self.session.execute(add_model_stmt)
+        return result.scalars().one()
