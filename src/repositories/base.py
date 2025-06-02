@@ -1,6 +1,6 @@
 from typing import Any, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -23,3 +23,7 @@ class BaseRepository:
         result = await self.session.execute(query)
 
         return result.scalars().one_or_none()
+
+    async def add(self, *args, **kwargs):
+        add_model_stmt = insert(self.model).values(kwargs)
+        return await self.session.execute(add_model_stmt)

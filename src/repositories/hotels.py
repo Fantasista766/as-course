@@ -1,8 +1,9 @@
 from typing import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import insert, select
 
 from src.repositories.base import BaseRepository
+from src.schemas.hotels import Hotel
 from src.models.hotels import HotelsORM
 
 
@@ -21,3 +22,14 @@ class HotelsRepository(BaseRepository):
         query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def add(self, title: str, location: str, *args, **kwargs) -> Hotel:
+        add_model_stmt = (
+            insert(HotelsORM)
+            .values(title=title, location=location)
+            .returning(HotelsORM)
+        )
+        result = await self.session.execute(add_model_stmt)
+        result = result.scalar_one()
+
+        return Hotel.model_validate(result.__dict__)

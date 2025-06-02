@@ -1,5 +1,6 @@
+from typing import Any
+
 from fastapi import APIRouter, Body, Query
-from sqlalchemy import insert
 
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
@@ -36,26 +37,25 @@ async def create_hotel(
             "1": {
                 "summary": "Sochi",
                 "value": {
-                    "title": "Hotel Sochi 5 start near sea",
-                    "location": "ул. Моря, 1",
+                    "title": "Hotel 5 start near sea",
+                    "location": "Сочи, ул. Моря, 1",
                 },
             },
             "2": {
                 "summary": "Dubai",
                 "value": {
-                    "title": "Hotel Dubai 5 star with pool",
-                    "location": "ул. Шейха, 2",
+                    "title": "Hotel 5 star with pool",
+                    "location": "Дубай, ул. Шейха, 2",
                 },
             },
         }
     )
-):
+) -> dict[str, Any]:
     async with async_session_maker() as session:
-        add_hotel_stmt = insert(HotelsORM).values(**hotel_data.model_dump())
-        await session.execute(add_hotel_stmt)
+        hotel = await HotelsRepository(session).add(**hotel_data.model_dump())
         await session.commit()
 
-    return {"status": "OK"}
+    return {"status": "OK", "data": hotel}
 
 
 @router.put("/{hotel_id}", summary="Обновить данные об отеле")
