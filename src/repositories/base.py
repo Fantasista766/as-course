@@ -10,7 +10,9 @@ class BaseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all(self) -> Sequence[Any]:
+    async def get_all(
+        self, *args: tuple[Any], **kwargs: dict[Any, Any]
+    ) -> Sequence[Any]:
         query = select(self.model)
         result = await self.session.execute(query)
 
