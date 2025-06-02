@@ -26,7 +26,7 @@ class BaseRepository:
 
         return result.scalars().one_or_none()
 
-    async def add(self, data: BaseModel):
+    async def add(self, data: BaseModel) -> Any:
         add_model_stmt = (
             insert(self.model).values(**data.model_dump()).returning(self.model)
         )

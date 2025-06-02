@@ -54,7 +54,7 @@ async def create_hotel(
         hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
 
-    return {"status": "OK", "data": hotel}
+    return {"status": "OK", "data": Hotel.model_validate(hotel)}
 
 
 @router.put("/{hotel_id}", summary="Обновить данные об отеле")
