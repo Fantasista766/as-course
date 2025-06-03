@@ -58,14 +58,13 @@ async def create_hotel(
 
 
 @router.put("/{hotel_id}", summary="Обновить данные об отеле")
-def update_hotel(hotel_id: int, hotel_data: Hotel):
-    global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotel["title"] = hotel_data.title
-            hotel["location"] = hotel_data.location
-            return {"status": "OK"}
-    return {"status": "Hotel not found"}, 404
+async def update_hotel(hotel_id: int, hotel_data: Hotel):
+    async with async_session_maker() as session:
+        result = await HotelsRepository(session).edit(hotel_data, id=hotel_id)
+        await session.commit()
+    if result == 404:
+        return {"status": "Hotel not found"}, 404
+    return {"status": "OK"}
 
 
 @router.patch(
@@ -89,7 +88,10 @@ def partial_update_hotel(
 
 
 @router.delete("/{hotel_id}", summary="Удалить отель")
-def delete_hotel(hotel_id: int):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+async def delete_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        result = await HotelsRepository(session).delete(id=hotel_id)
+        await session.commit()
+    if result == 404:
+        return {"status": "Hotel not found"}, 404
     return {"status": "OK"}
