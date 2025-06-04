@@ -32,10 +32,7 @@ async def get_hotels(
 @router.get("/{id}", summary="Получить отель")
 async def get_hotel(hotel_id: int) -> Hotel:
     async with async_session_maker() as session:
-        result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
-        await session.commit()
-
-    return result
+        return await HotelsRepository(session).get_one_or_none(id=hotel_id)
 
 
 @router.post("/", summary="Создать новый отель")
