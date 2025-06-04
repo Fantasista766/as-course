@@ -1,9 +1,13 @@
 from pydantic import BaseModel
 
 
-class Hotel(BaseModel):
+class HotelAdd(BaseModel):
     title: str
     location: str
+
+
+class Hotel(HotelAdd):
+    id: int
 
     class Config:
         from_attributes = True

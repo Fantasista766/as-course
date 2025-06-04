@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,30 +8,29 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 class BaseRepository:
     model: Any = None
+    schema: Any = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all(
-        self, *args: tuple[Any], **kwargs: dict[Any, Any]
-    ) -> Sequence[Any]:
+    async def get_all(self, *args: tuple[Any], **kwargs: dict[Any, Any]) -> list[Any]:
         query = select(self.model)
         result = await self.session.execute(query)
+        return [self.schema.model_validate(model) for model in result.scalars().all()]
 
-        return result.scalars().all()
-
-    async def get_one_or_none(self, **filter_by: dict[str, Any]) -> Any:
+    async def get_one_or_none(self, **filter_by: Any) -> Any:
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-
-        return result.scalars().one_or_none()
+        model = result.scalars().one_or_none()
+        return self.schema.model_validate(model) if model else model
 
     async def add(self, data: BaseModel) -> Any:
         add_model_stmt = (
             insert(self.model).values(**data.model_dump()).returning(self.model)
         )
         result = await self.session.execute(add_model_stmt)
-        return result.scalars().one()
+        model = result.scalars().one()
+        return self.schema.model_validate(model) if model else model
 
     async def edit(
         self, data: BaseModel, exclude_unset: bool = False, **filter_by: Any
