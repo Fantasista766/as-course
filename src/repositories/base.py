@@ -33,12 +33,16 @@ class BaseRepository:
         result = await self.session.execute(add_model_stmt)
         return result.scalars().one()
 
-    async def edit(self, data: BaseModel, **filter_by: Any) -> int | None:
+    async def edit(
+        self, data: BaseModel, exclude_unset: bool = False, **filter_by: Any
+    ) -> int | None:
         result = await self.get_one_or_none(**filter_by)
         if not result:
             return 404
         edit_model_stmt = (
-            update(self.model).values(**data.model_dump()).filter_by(**filter_by)
+            update(self.model)
+            .values(**data.model_dump(exclude_unset=exclude_unset))
+            .filter_by(**filter_by)
         )
         await self.session.execute(edit_model_stmt)
 

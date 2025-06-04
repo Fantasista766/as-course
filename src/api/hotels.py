@@ -29,6 +29,15 @@ async def get_hotels(
         )
 
 
+@router.get("/{id}", summary="Получить отель")
+async def get_hotel(hotel_id: int) -> Hotel:
+    async with async_session_maker() as session:
+        result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
+        await session.commit()
+
+    return result
+
+
 @router.post("/", summary="Создать новый отель")
 async def create_hotel(
     hotel_data: Hotel = Body(
@@ -72,19 +81,18 @@ async def update_hotel(hotel_id: int, hotel_data: Hotel):
     summary="Частично обновить данные об отеле",
     description="Позволяет обновить только некоторые поля отеля, такие как название или имя.",
 )
-def partial_update_hotel(
+async def partial_update_hotel(
     hotel_id: int,
     hotel_data: HotelPATCH,
 ):
-    global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            if hotel_data.title is not None:
-                hotel["title"] = hotel_data.title
-            if hotel_data.location is not None:
-                hotel["location"] = hotel_data.location
-            return {"status": "OK"}
-    return {"status": "Hotel not found"}, 404
+    async with async_session_maker() as session:
+        result = await HotelsRepository(session).edit(
+            hotel_data, exclude_unset=True, id=hotel_id
+        )
+        await session.commit()
+    if result == 404:
+        return {"status": "Hotel not found"}, 404
+    return {"status": "OK"}
 
 
 @router.delete("/{hotel_id}", summary="Удалить отель")
