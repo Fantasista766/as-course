@@ -28,7 +28,12 @@ class BaseRepository:
         add_model_stmt = (
             insert(self.model).values(**data.model_dump()).returning(self.model)
         )
-        result = await self.session.execute(add_model_stmt)
+        try:
+            result = await self.session.execute(add_model_stmt)
+        except Exception as e:
+            if "already exists." in e.args[0]:
+                return f"Пользователь с такими данными уже зарегистрирован"
+            return f"Не удалось создать пользователя"
         model = result.scalars().one()
         return self.schema.model_validate(model) if model else model
 

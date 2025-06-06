@@ -22,7 +22,7 @@ async def register_user(
         hashed_password=hashed_password,
     )
     async with async_session_maker() as session:
-        await UsersRepository(session).add(new_user_data)
+        res = await UsersRepository(session).add(new_user_data)
         await session.commit()
 
-    return {"status": "OK"}
+    return {"status": "OK"} if not res else {"status": "ERROR", "details": res}
