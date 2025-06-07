@@ -31,11 +31,9 @@ class BaseRepository:
         try:
             result = await self.session.execute(add_model_stmt)
         except Exception as e:
-            if "already exists." in e.args[0]:
-                return f"Пользователь с такими данными уже зарегистрирован"
-            return f"Не удалось создать пользователя"
+            return None
         model = result.scalars().one()
-        return self.schema.model_validate(model) if model else model
+        return self.schema.model_validate(model)
 
     async def edit(
         self, data: BaseModel, exclude_unset: bool = False, **filter_by: Any
