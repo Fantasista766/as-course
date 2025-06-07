@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 
 from src.database import async_session_maker
 from src.repositories.users import UsersRepository
@@ -53,3 +53,9 @@ async def login_user(
         return {"access_token": access_token}
 
     return {"status": "OK"}
+
+
+@router.get("/only_auth")
+async def only_auth(request: Request):
+    access_token = request.cookies.get("access_token")
+    return {"access_token": access_token}
