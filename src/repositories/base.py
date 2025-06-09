@@ -13,7 +13,7 @@ class BaseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all(self, *args: tuple[Any], **kwargs: dict[Any, Any]) -> list[Any]:
+    async def get_all(self, *args: Any, **kwargs: Any) -> list[Any]:
         query = select(self.model)
         result = await self.session.execute(query)
         return [self.schema.model_validate(model) for model in result.scalars().all()]

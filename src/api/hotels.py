@@ -1,13 +1,15 @@
 from typing import Any
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, HTTPException, Body, Query
 
 from src.api.dependencies import PaginationDep
+from src.api.rooms import router as router_rooms
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
+router.include_router(router_rooms)
 
 
 @router.get(
@@ -31,7 +33,7 @@ async def get_hotels(
 
 
 @router.get("/{hotel_id}", summary="Получить отель")
-async def get_hotel(hotel_id: int) -> Hotel:
+async def get_hotel(hotel_id: int) -> Hotel | None:
     async with async_session_maker() as session:
         return await HotelsRepository(session).get_one_or_none(id=hotel_id)
 
@@ -56,7 +58,7 @@ async def create_hotel(
             },
         }
     )
-) -> Any:
+) -> dict[str, str | Hotel]:
     async with async_session_maker() as session:
         hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
@@ -70,7 +72,7 @@ async def update_hotel(hotel_id: int, hotel_data: HotelAdd):
         result = await HotelsRepository(session).edit(hotel_data, id=hotel_id)
         await session.commit()
     if result == 404:
-        return {"status": "Hotel not found"}, 404
+        raise HTTPException(status_code=404, detail="Отель не найден")
     return {"status": "OK"}
 
 
@@ -89,7 +91,7 @@ async def partial_update_hotel(
         )
         await session.commit()
     if result == 404:
-        return {"status": "Hotel not found"}, 404
+        raise HTTPException(status_code=404, detail="Отель не найден")
     return {"status": "OK"}
 
 
@@ -99,5 +101,5 @@ async def delete_hotel(hotel_id: int):
         result = await HotelsRepository(session).delete(id=hotel_id)
         await session.commit()
     if result == 404:
-        return {"status": "Hotel not found"}, 404
+        raise HTTPException(status_code=404, detail="Отель не найден")
     return {"status": "OK"}
