@@ -6,7 +6,7 @@ from src.api.dependencies import PaginationDep
 from src.api.rooms import router as router_rooms
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
+from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 router.include_router(router_rooms)
@@ -83,7 +83,7 @@ async def update_hotel(hotel_id: int, hotel_data: HotelAdd):
 )
 async def partial_update_hotel(
     hotel_id: int,
-    hotel_data: HotelPATCH,
+    hotel_data: HotelPatch,
 ):
     async with async_session_maker() as session:
         result = await HotelsRepository(session).edit(

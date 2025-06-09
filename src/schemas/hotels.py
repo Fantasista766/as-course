@@ -13,6 +13,6 @@ class Hotel(HotelAdd):
         from_attributes = True
 
 
-class HotelPATCH(BaseModel):
+class HotelPatch(BaseModel):
     title: str | None = None
     location: str | None = None

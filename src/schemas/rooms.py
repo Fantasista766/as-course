@@ -16,7 +16,7 @@ class Room(RoomAdd):
         from_attributes = True
 
 
-class RoomPATCH(BaseModel):
+class RoomPatch(BaseModel):
     hotel_id: int | None = None
     title: str | None = None
     description: str | None = None

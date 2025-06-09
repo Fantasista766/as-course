@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Body
 from src.api.dependencies import HotelIdDep, check_hotel_existence
 from src.database import async_session_maker
 from src.repositories.rooms import RoomsRepository
-from src.schemas.rooms import Room, RoomPATCH, RoomAdd
+from src.schemas.rooms import Room, RoomPatch, RoomAdd
 
 router = APIRouter(prefix="/{hotel_id}/rooms", tags=["Номера в отеле"])
 
@@ -86,7 +86,7 @@ async def update_room(hotel_id: HotelIdDep, room_id: int, room_data: RoomAdd) ->
 async def partial_update_room(
     hotel_id: HotelIdDep,
     room_id: int,
-    room_data: RoomPATCH,
+    room_data: RoomPatch,
 ):
     if room_data.hotel_id:
         await check_hotel_existence(room_data.hotel_id)
