@@ -3,13 +3,11 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Body, Query
 
 from src.api.dependencies import PaginationDep
-from src.api.rooms import router as router_rooms
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
-router.include_router(router_rooms)
 
 
 @router.get(

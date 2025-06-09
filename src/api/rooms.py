@@ -7,7 +7,7 @@ from src.database import async_session_maker
 from src.repositories.rooms import RoomsRepository
 from src.schemas.rooms import Room, RoomPatch, RoomAdd
 
-router = APIRouter(prefix="/{hotel_id}/rooms", tags=["Номера в отеле"])
+router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в отеле"])
 
 
 @router.get(
