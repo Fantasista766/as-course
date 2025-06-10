@@ -11,7 +11,20 @@ router = APIRouter(prefix="/bookings", tags=["Брони"])
     summary="Создать новую бронь",
 )
 async def create_booking(
-    db: DBDep, user_id: UserIdDep, booking_data: BookingAdd = Body()
+    db: DBDep,
+    user_id: UserIdDep,
+    booking_data: BookingAdd = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Бронь 1",
+                "value": {
+                    "room_id": 1,
+                    "date_from": "2025-06-10",
+                    "date_to": "2025-06-10",
+                },
+            },
+        }
+    ),
 ) -> dict[str, str | Booking]:
     room_data = await db.rooms.get_one_or_none(id=booking_data.room_id)
     if not room_data:
@@ -20,11 +33,7 @@ async def create_booking(
         )
 
     _booking_data = BookingAddRequest(
-        room_id=booking_data.room_id,
-        date_from=booking_data.date_from,
-        date_to=booking_data.date_to,
-        price=room_data.price,
-        user_id=user_id,
+        price=room_data.price, user_id=user_id, **booking_data.model_dump()
     )
 
     booking = await db.bookings.add(_booking_data)
