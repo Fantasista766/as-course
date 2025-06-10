@@ -1,5 +1,5 @@
-import sys
 from pathlib import Path
+import sys
 
 from fastapi import FastAPI
 import uvicorn

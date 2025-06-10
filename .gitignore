@@ -10,4 +10,4 @@ wheels/
 .venv
 
 .env
-src/migrations/versions  # на каждой тачке просто синхронно ведём БД
+src/migrations/versions/  # на каждой тачке просто синхронно ведём БД
