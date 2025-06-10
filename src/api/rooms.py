@@ -50,7 +50,7 @@ async def create_room(
     ),
 ) -> dict[str, str | Room]:
     # не хочу отдельно hotel_id принимать как параметр функции, поэтому напрямую вызвал функцию из dependencies
-    await check_hotel_existence(room_data.hotel_id)
+    await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
 
     room = db.rooms.add(room_data)
     await db.commit()
@@ -62,7 +62,7 @@ async def create_room(
 async def update_room(
     db: DBDep, hotel_id: HotelIdDep, room_id: int, room_data: RoomAdd
 ) -> Any:
-    await check_hotel_existence(room_data.hotel_id)
+    await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
 
     result = await db.rooms.edit(room_data, id=room_id, hotel_id=hotel_id)
     await db.commit()
@@ -83,7 +83,7 @@ async def partial_update_room(
     room_data: RoomPatch,
 ):
     if room_data.hotel_id:
-        await check_hotel_existence(room_data.hotel_id)
+        await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
 
     result = await db.rooms.edit(
         room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id
