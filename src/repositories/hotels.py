@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import select
 
 from src.models.hotels import HotelsORM
@@ -15,8 +17,8 @@ class HotelsRepository(BaseRepository):
         title: str | None,
         limit: int,
         offset: int,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> list[Hotel]:
         query = select(HotelsORM)
         if title:

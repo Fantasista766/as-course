@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 from src.services.auth import AuthService
+from src.utils.db_manager import DBManager
 
 
 class PaginationParams(BaseModel):
@@ -49,3 +50,15 @@ async def check_hotel_existence(hotel_id: int) -> int | None:
 
 
 HotelIdDep = Annotated[int, Depends(check_hotel_existence)]
+
+
+def get_db_manager():
+    return DBManager(session_factory=async_session_maker)
+
+
+async def get_db():
+    async with get_db_manager() as db:
+        yield db
+
+
+DBDep = Annotated[DBManager, Depends(get_db)]
