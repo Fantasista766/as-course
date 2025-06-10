@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, Body
 
 from src.api.dependencies import DBDep, UserIdDep
@@ -40,7 +42,10 @@ async def create_booking(
         )
 
     _booking_data = BookingAddRequest(
-        price=room_data.price, user_id=user_id, **booking_data.model_dump()
+        price=room_data.price,
+        user_id=user_id,
+        create_at=datetime.now(),
+        **booking_data.model_dump(),
     )
 
     booking = await db.bookings.add(_booking_data)
