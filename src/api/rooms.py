@@ -52,7 +52,7 @@ async def create_room(
     # не хочу отдельно hotel_id принимать как параметр функции, поэтому напрямую вызвал функцию из dependencies
     await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
 
-    room = db.rooms.add(room_data)
+    room = await db.rooms.add(room_data)
     await db.commit()
 
     return {"status": "OK", "data": Room.model_validate(room)}
