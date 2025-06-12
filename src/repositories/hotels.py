@@ -28,15 +28,17 @@ class HotelsRepository(BaseRepository):
             .select_from(RoomsORM)
             .filter(RoomsORM.id.in_(rooms_ids_to_get))
         )
+        query = select(HotelsORM).filter(HotelsORM.id.in_(hotels_ids_to_get))
 
         if title:
-            hotels_ids_to_get = hotels_ids_to_get.filter(
-                HotelsORM.title.icontains(title.strip())
-            )
+            query = query.filter(HotelsORM.title.icontains(title.strip()))
         if location:
-            hotels_ids_to_get = hotels_ids_to_get.filter(
-                HotelsORM.location.contains(location.strip())
-            )
+            query = query.filter(HotelsORM.location.contains(location.strip()))
 
-        hotels_ids_to_get = hotels_ids_to_get.limit(limit).offset(offset)
-        return await self.get_filtered(HotelsORM.id.in_(hotels_ids_to_get))
+        query = query.limit(limit).offset(offset)
+        result = await self.session.execute(query)
+
+        return [
+            Hotel.model_validate(hotel, from_attributes=True)
+            for hotel in result.scalars().all()
+        ]
