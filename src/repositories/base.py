@@ -34,6 +34,7 @@ class BaseRepository:
         try:
             result = await self.session.execute(add_model_stmt)
         except Exception as e:
+            print(e)
             return None
         model = result.scalars().one()
         return self.schema.model_validate(model)
