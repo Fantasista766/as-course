@@ -20,18 +20,16 @@ async def get_hotels(
     date_from: date = Query(example="2025-06-10"),
     date_to: date = Query(example="2025-06-20"),
 ) -> list[Hotel]:
-    # per_page = pagination.per_page or 5
-    # page = pagination.page or 1
+    per_page = pagination.per_page or 5
+    page = pagination.page or 1
     return await db.hotels.get_filtered_by_time(
         date_from=date_from,
         date_to=date_to,
+        location=location,
+        title=title,
+        limit=per_page,
+        offset=(page - 1) * per_page,
     )
-    # return await db.hotels.get_all(
-    #     location=location,
-    #     title=title,
-    #     limit=per_page,
-    #     offset=(page - 1) * per_page,
-    # )
 
 
 @router.get("/{hotel_id}", summary="Получить отель")
