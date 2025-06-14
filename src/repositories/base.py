@@ -38,6 +38,16 @@ class BaseRepository:
             return None
         model = result.scalars().one()
         return self.schema.model_validate(model)
+    
+    async def add_batch(self, data: list[BaseModel]) -> Any:
+        add_model_stmt = (
+            insert(self.model).values([item.model_dump() for item in data]).returning(self.model)
+        )
+        try:
+            await self.session.execute(add_model_stmt)
+        except Exception as e:
+            print(e)
+            return None
 
     async def edit(
         self, data: BaseModel, exclude_unset: bool = False, **filter_by: Any

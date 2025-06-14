@@ -4,7 +4,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Body, Query
 
 from src.api.dependencies import DBDep, HotelIdDep, check_hotel_existence
-from src.schemas.rooms import Room, RoomPatch, RoomAdd
+from src.schemas.facilities import RoomFacilityAdd
+from src.schemas.rooms import Room, RoomAdd, RoomAddRequest, RoomPatch
 
 router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в отеле"])
 
@@ -31,36 +32,42 @@ async def get_room(db: DBDep, hotel_id: HotelIdDep, room_id: int) -> Room | None
 
 @router.post("/", summary="Создать новый номер в отеле")
 async def create_room(
+    hotel_id: HotelIdDep,
     db: DBDep,
-    room_data: RoomAdd = Body(
+    room_data: RoomAddRequest = Body(
         openapi_examples={
             "1": {
                 "summary": "Luxury",
                 "value": {
-                    "hotel_id": 1,
                     "title": "Анаконда",
                     "description": "Всё включено",
                     "price": 1000,
                     "quantity": 10,
+                    "facilities_ids": [],
                 },
             },
             "2": {
                 "summary": "Basic",
                 "value": {
-                    "hotel_id": 1,
                     "title": "Кобра",
                     "description": "Основные удобства",
                     "price": 300,
                     "quantity": 50,
+                    "facilities_ids": [],
                 },
             },
         }
     ),
 ) -> dict[str, str | Room]:
-    # не хочу отдельно hotel_id принимать как параметр функции, поэтому напрямую вызвал функцию из dependencies
-    await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
+    room = await db.rooms.add(_room_data)
 
-    room = await db.rooms.add(room_data)
+    if room_data.facilities_ids:
+        rooms_facilities_data = [
+            RoomFacilityAdd(room_id=room.id, facility_id=f_id)
+            for f_id in room_data.facilities_ids
+        ]
+        await db.rooms_facilities.add_batch(rooms_facilities_data)  # type: ignore
     await db.commit()
 
     return {"status": "OK", "data": Room.model_validate(room)}
@@ -70,9 +77,9 @@ async def create_room(
 async def update_room(
     db: DBDep, hotel_id: HotelIdDep, room_id: int, room_data: RoomAdd
 ) -> Any:
-    await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
 
-    result = await db.rooms.edit(room_data, id=room_id, hotel_id=hotel_id)
+    result = await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
     await db.commit()
     if result == 404:
         raise HTTPException(status_code=404, detail="Номер не найден")
@@ -93,8 +100,12 @@ async def partial_update_room(
     if room_data.hotel_id:
         await check_hotel_existence(db=db, hotel_id=room_data.hotel_id)
 
+    _room_data = RoomPatch(
+        hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True)
+    )
+
     result = await db.rooms.edit(
-        room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id
+        _room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id
     )
     await db.commit()
     if result == 404:
