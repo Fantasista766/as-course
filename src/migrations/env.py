@@ -12,10 +12,10 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.config import settings
 from src.database import Base
 from src.models.bookings import BookingsORM  # type: ignore
+from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM  # type: ignore
 from src.models.hotels import HotelsORM  # type: ignore
 from src.models.rooms import RoomsORM  # type: ignore
 from src.models.users import UsersORM  # type: ignore
-from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM  # type: ignore
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
