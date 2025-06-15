@@ -6,7 +6,6 @@ from fastapi import APIRouter, HTTPException, Body, Query
 from src.api.dependencies import (
     DBDep,
     HotelIdDep,
-    check_facility_existence,
 )
 from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import Room, RoomAdd, RoomAddRequest, RoomPatch, RoomPatchRequest
@@ -84,36 +83,14 @@ async def update_room(
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
 
     result = await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
-    if room_data.facilities_ids:
-        # достаём все удобства номера
-        existing_room_facilities = await db.rooms_facilities.get_filtered(
-            room_id=room_id
-        )
-        existing_room_facilities_ids = [
-            rf.facility_id for rf in existing_room_facilities
-        ]
-
-        # добавляем те, которых нет у номера и которые есть в базе
-        room_facilities_to_add = [
-            RoomFacilityAdd(room_id=room_id, facility_id=f_id)
-            for f_id in room_data.facilities_ids
-            if f_id not in existing_room_facilities_ids
-            and await check_facility_existence(db=db, facility_id=f_id)
-        ]
-
-        # удаляем те, которые есть в базе, но нет в запросе
-        room_facilities_ids_to_delete = [
-            rf.facility_id
-            for rf in existing_room_facilities
-            if rf.facility_id not in room_data.facilities_ids
-        ]
-
-        await db.rooms_facilities.add_batch(room_facilities_to_add)  # type: ignore
-        await db.rooms_facilities.delete_batch_by_ids(room_facilities_ids_to_delete)  # type: ignore
-
-    await db.commit()
     if result == 404:
         raise HTTPException(status_code=404, detail="Номер не найден")
+    if room_data.facilities_ids:
+        await db.rooms_facilities.set_room_facilities(
+            room_id, facilities_ids=room_data.facilities_ids
+        )
+
+    await db.commit()
     return {"status": "OK"}
 
 
@@ -128,44 +105,22 @@ async def partial_update_room(
     room_id: int,
     room_data: RoomPatchRequest,
 ):
-    _room_data = RoomPatch(
-        hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True)
-    )
+    _room_data_dict = room_data.model_dump(exclude_unset=True)
+    _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
 
     result = await db.rooms.edit(
         _room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id
     )
-
-    if room_data.facilities_ids:
-        # достаём все удобства номера
-        existing_room_facilities = await db.rooms_facilities.get_filtered(
-            room_id=room_id
-        )
-        existing_room_facilities_ids = [
-            rf.facility_id for rf in existing_room_facilities
-        ]
-
-        # добавляем те, которых нет у номера и которые есть в базе
-        room_facilities_to_add = [
-            RoomFacilityAdd(room_id=room_id, facility_id=f_id)
-            for f_id in room_data.facilities_ids
-            if f_id not in existing_room_facilities_ids
-            and await check_facility_existence(db=db, facility_id=f_id)
-        ]
-
-        # удаляем те, которые есть в базе, но нет в запросе
-        room_facilities_ids_to_delete = [
-            rf.facility_id
-            for rf in existing_room_facilities
-            if rf.facility_id not in room_data.facilities_ids
-        ]
-
-        await db.rooms_facilities.add_batch(room_facilities_to_add)  # type: ignore
-        await db.rooms_facilities.delete_batch_by_ids(room_facilities_ids_to_delete)  # type: ignore
-
-    await db.commit()
     if result == 404:
         raise HTTPException(status_code=404, detail="Номер не найден")
+
+    if room_data.facilities_ids:
+        await db.rooms_facilities.set_room_facilities(
+            room_id, facilities_ids=room_data.facilities_ids
+        )
+
+    await db.commit()
+
     return {"status": "OK"}
 
 
