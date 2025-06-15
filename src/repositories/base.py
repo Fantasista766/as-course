@@ -38,10 +38,12 @@ class BaseRepository:
             return None
         model = result.scalars().one()
         return self.schema.model_validate(model)
-    
+
     async def add_batch(self, data: list[BaseModel]) -> Any:
         add_model_stmt = (
-            insert(self.model).values([item.model_dump() for item in data]).returning(self.model)
+            insert(self.model)
+            .values([item.model_dump() for item in data])
+            .returning(self.model)
         )
         try:
             await self.session.execute(add_model_stmt)
@@ -67,4 +69,8 @@ class BaseRepository:
         if not result:
             return 404
         delete_model_stmt = delete(self.model).filter_by(**filter_by)
+        await self.session.execute(delete_model_stmt)
+
+    async def delete_batch_by_ids(self, ids_to_delete: list[int]) -> int | None:
+        delete_model_stmt = delete(self.model).where(self.model.id.in_(ids_to_delete))
         await self.session.execute(delete_model_stmt)
