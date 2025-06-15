@@ -31,4 +31,4 @@ class RoomsFacilitiesRepository(BaseRepository):
         ]
 
         await self.add_batch(room_facilities_to_add)  # type: ignore
-        await self.rooms_facilities.delete_batch_by_ids(ids_to_delete)  # type: ignore
+        await self.delete_batch_by_ids(ids_to_delete)  # type: ignore
