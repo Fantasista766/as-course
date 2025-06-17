@@ -4,15 +4,16 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.repositories.base import BaseRepository
-from src.repositories.utils import rooms_ids_for_booking
 from src.models.rooms import RoomsORM
-from src.schemas.rooms import Room, RoomWithRels
+from src.repositories.base import BaseRepository
+from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
+from src.repositories.utils import rooms_ids_for_booking
+from src.schemas.rooms import RoomWithRels
 
 
 class RoomsRepository(BaseRepository):
     model = RoomsORM
-    schema = Room
+    mapper = RoomDataMapper
 
     async def get_filtered_by_time(
         self, hotel_id: int, date_from: date, date_to: date
@@ -26,7 +27,7 @@ class RoomsRepository(BaseRepository):
         )
         result = await self.session.execute(query)
         return [
-            RoomWithRels.model_validate(model)
+            RoomWithRelsDataMapper.map_to_domain_entity(model)
             for model in result.unique().scalars().all()
         ]
 
@@ -38,4 +39,4 @@ class RoomsRepository(BaseRepository):
         )
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
-        return RoomWithRels.model_validate(model) if model else model
+        return RoomWithRelsDataMapper.map_to_domain_entity(model) if model else model
