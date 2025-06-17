@@ -39,7 +39,7 @@ async def get_rooms(
 async def get_room(
     db: DBDep, hotel_id: HotelIdDep, room_id: int
 ) -> RoomWithRels | None:
-    return await db.rooms.get_one_or_none(id=room_id, hotel_id=hotel_id)
+    return await db.rooms.get_one_or_none_with_rels(id=room_id, hotel_id=hotel_id)
 
 
 @router.post("/", summary="Создать новый номер в отеле")

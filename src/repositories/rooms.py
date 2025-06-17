@@ -30,7 +30,7 @@ class RoomsRepository(BaseRepository):
             for model in result.unique().scalars().all()
         ]
 
-    async def get_one_or_none(self, **filter_by: Any) -> RoomWithRels | None:
+    async def get_one_or_none_with_rels(self, **filter_by: Any) -> RoomWithRels | None:
         query = (
             select(self.model)
             .options(selectinload(self.model.facilities))
