@@ -36,7 +36,9 @@ async def get_rooms(
 
 
 @router.get("/{room_id}", summary="Получить номер в отеле")
-async def get_room(db: DBDep, hotel_id: HotelIdDep, room_id: int) -> Room | None:
+async def get_room(
+    db: DBDep, hotel_id: HotelIdDep, room_id: int
+) -> RoomWithRels | None:
     return await db.rooms.get_one_or_none(id=room_id, hotel_id=hotel_id)
 
 
