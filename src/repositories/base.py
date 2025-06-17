@@ -46,10 +46,11 @@ class BaseRepository:
             .returning(self.model)
         )
         try:
-            await self.session.execute(add_model_stmt)
+            res = await self.session.execute(add_model_stmt)
         except Exception as e:
             print(e)
             return None
+        return res
 
     async def edit(
         self, data: BaseModel, exclude_unset: bool = False, **filter_by: Any

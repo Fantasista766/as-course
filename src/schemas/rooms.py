@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from src.schemas.facilities import Facility
+
 
 class RoomAddRequest(BaseModel):
     title: str
@@ -22,6 +24,10 @@ class Room(RoomAdd):
 
     class Config:
         from_attributes = True
+
+
+class RoomWithRels(Room):
+    facilities: list[Facility]
 
 
 class RoomPatchRequest(BaseModel):

@@ -8,7 +8,14 @@ from src.api.dependencies import (
     HotelIdDep,
 )
 from src.schemas.facilities import RoomFacilityAdd
-from src.schemas.rooms import Room, RoomAdd, RoomAddRequest, RoomPatch, RoomPatchRequest
+from src.schemas.rooms import (
+    Room,
+    RoomAdd,
+    RoomAddRequest,
+    RoomPatch,
+    RoomPatchRequest,
+    RoomWithRels,
+)
 
 router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в отеле"])
 
@@ -22,7 +29,7 @@ async def get_rooms(
     hotel_id: HotelIdDep,
     date_from: date = Query(example="2025-06-10"),
     date_to: date = Query(example="2025-06-20"),
-) -> list[Room]:
+) -> list[RoomWithRels]:
     return await db.rooms.get_filtered_by_time(
         hotel_id=hotel_id, date_from=date_from, date_to=date_to
     )
@@ -70,7 +77,9 @@ async def create_room(
             RoomFacilityAdd(room_id=room.id, facility_id=f_id)
             for f_id in room_data.facilities_ids
         ]
-        await db.rooms_facilities.add_batch(rooms_facilities_data)  # type: ignore
+        res = await db.rooms_facilities.add_batch(rooms_facilities_data)  # type: ignore
+        if not res:
+            raise HTTPException(status_code=404, detail="Удобства не найдены")
     await db.commit()
 
     return {"status": "OK", "data": Room.model_validate(room)}
