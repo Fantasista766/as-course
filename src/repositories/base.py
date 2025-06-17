@@ -1,14 +1,13 @@
 from typing import Any
 
 from pydantic import BaseModel
-
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class BaseRepository:
     model: Any = None
-    schema: Any = None
+    mapper: Any = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -16,7 +15,9 @@ class BaseRepository:
     async def get_filtered(self, *filter: Any, **filter_by: Any) -> list[Any]:
         query = select(self.model).filter(*filter).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model) for model in result.scalars().all()]
+        return [
+            self.mapper.map_to_domain_entity(model) for model in result.scalars().all()
+        ]
 
     async def get_all(self, *args: Any, **kwargs: Any) -> list[Any]:
         return await self.get_filtered()
@@ -25,7 +26,7 @@ class BaseRepository:
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
-        return self.schema.model_validate(model) if model else model
+        return self.mapper.map_to_domain_entity(model) if model else model
 
     async def add(self, data: BaseModel) -> Any:
         add_model_stmt = (
@@ -37,7 +38,7 @@ class BaseRepository:
             print(e)
             return None
         model = result.scalars().one()
-        return self.schema.model_validate(model)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add_batch(self, data: list[BaseModel]) -> Any:
         add_model_stmt = (

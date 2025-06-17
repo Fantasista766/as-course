@@ -9,9 +9,6 @@ class HotelAdd(BaseModel):
 class Hotel(HotelAdd):
     id: int
 
-    class Config:
-        from_attributes = True
-
 
 class HotelPatch(BaseModel):
     title: str | None = None
