@@ -11,3 +11,4 @@ wheels/
 
 .env
 src/migrations/versions
+src/static/
