@@ -13,6 +13,7 @@ dependencies = [
     "fastapi-cache2>=0.2.2",
     "fastapi[standard]>=0.115.12",
     "passlib[bcrypt]>=1.7.4",
+    "pillow>=11.2.1",
     "pydantic-settings>=2.9.1",
     "pyjwt>=2.10.1",
     "redis>=6.2.0",
