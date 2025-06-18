@@ -2,6 +2,7 @@ from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi_cache.decorator import cache
 
 from src.api.dependencies import (
     DBDep,
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в о�
     "/",
     summary="Получить список номеров отеля",
 )
+@cache(expire=10)
 async def get_rooms(
     db: DBDep,
     hotel_id: HotelIdDep,
@@ -36,6 +38,7 @@ async def get_rooms(
 
 
 @router.get("/{room_id}", summary="Получить номер в отеле")
+@cache(expire=10)
 async def get_room(
     db: DBDep, hotel_id: HotelIdDep, room_id: int
 ) -> RoomWithRels | None:

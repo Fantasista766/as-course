@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Response
+from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, UserIdDep
 from src.schemas.users import UserAdd, UserRegister, UserLogin
@@ -57,6 +58,7 @@ async def logout_user(response: Response):
 
 
 @router.get("/me")
+@cache(expire=10)
 async def get_me(db: DBDep, user_id: UserIdDep):
     user = await db.users.get_one_or_none(id=user_id)
     return user

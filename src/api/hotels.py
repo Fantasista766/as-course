@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, PaginationDep
 from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
     "/",
     summary="Получить список отелей",
 )
+@cache(expire=10)
 async def get_hotels(
     pagination: PaginationDep,
     db: DBDep,
@@ -33,6 +35,7 @@ async def get_hotels(
 
 
 @router.get("/{hotel_id}", summary="Получить отель")
+@cache(expire=10)
 async def get_hotel(db: DBDep, hotel_id: int) -> Hotel | None:
     return await db.hotels.get_one_or_none(id=hotel_id)
 
