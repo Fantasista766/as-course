@@ -29,12 +29,12 @@ class HotelsRepository(BaseRepository):
             .select_from(RoomsORM)
             .filter(RoomsORM.id.in_(rooms_ids_to_get))
         )
-        query = select(HotelsORM).filter(HotelsORM.id.in_(hotels_ids_to_get))
+        query = select(self.model).filter(self.model.id.in_(hotels_ids_to_get))
 
         if title:
-            query = query.filter(HotelsORM.title.icontains(title.strip()))
+            query = query.filter(self.model.title.icontains(title.strip()))
         if location:
-            query = query.filter(HotelsORM.location.contains(location.strip()))
+            query = query.filter(self.model.location.contains(location.strip()))
 
         query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)

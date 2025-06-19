@@ -23,7 +23,7 @@ class RoomsRepository(BaseRepository):
         query = (
             select(self.model)
             .options(selectinload(self.model.facilities))
-            .filter(RoomsORM.id.in_(rooms_ids_to_get))
+            .filter(self.model.id.in_(rooms_ids_to_get))
         )
         result = await self.session.execute(query)
         return [
