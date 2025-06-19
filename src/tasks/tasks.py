@@ -14,7 +14,7 @@ def test_task() -> None:
 
 @celery_instance.task  # type: ignore
 def resize_image(image_path: str):
-    widths = [100, 500, 720, 1920, 3840]
+    widths = [100, 500, 1280, 1920, 3840]
     output_dir = "src/static/images"
 
     img = Image.open(image_path)
