@@ -33,5 +33,5 @@ class AuthService:
             return jwt.decode(  # type: ignore
                 token, key=settings.JWT_SECRET_KEY, algorithms=settings.JWT_ALGORITHM
             )
-        except jwt.exceptions.DecodeError as e:
+        except jwt.exceptions.DecodeError as _:
             raise HTTPException(status_code=401, detail="Неверный токен")
