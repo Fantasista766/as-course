@@ -9,5 +9,6 @@ async def test_add_hotel():
         await db.hotels.add(hotel_data)
         await db.commit()
         new_hotels_data = await db.hotels.get_all()
-        print(f"{new_hotels_data=}")
+        assert new_hotels_data[0].title == hotel_data.title  # type: ignore
+        assert new_hotels_data[0].location == hotel_data.location  # type: ignore
         assert len(new_hotels_data) == 1
