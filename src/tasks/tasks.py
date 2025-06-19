@@ -44,7 +44,7 @@ def get_db_manager():
 
 
 async def get_bookings_with_today_checkin_helper():
-    print(f"IMRHER")
+    print(f"LAUNCHING...")
     async with get_db_manager() as db:
         bookings = await db.bookings.get_bookings_with_today_checkin()
         print(f"{bookings=}")
