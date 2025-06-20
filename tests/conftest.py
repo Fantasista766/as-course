@@ -1,3 +1,4 @@
+from typing import Any, Callable
 import json
 
 from httpx import AsyncClient, ASGITransport
@@ -17,15 +18,21 @@ def check_test_mode():
     assert settings.MODE == "TEST"
 
 
+@pytest.fixture(scope="function")
+async def db() -> Any:
+    async with DBManager(session_factory=async_session_maker_null_pool) as db:
+        yield db
+
+
 @pytest.fixture(scope="session", autouse=True)
-async def setup_database(check_test_mode):  # type: ignore
+async def setup_database(check_test_mode: Callable[..., Any]):
     async with engine_null_pool.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def load_data_to_db(setup_database):  # type: ignore
+async def load_data_to_db(setup_database: Callable[..., Any]):
     with open("tests/mock_hotels.json", "r") as f:
         hotels = json.load(f)
 
@@ -35,24 +42,29 @@ async def load_data_to_db(setup_database):  # type: ignore
     hotels_models = [HotelAdd.model_validate(hotel) for hotel in hotels]
     rooms_models = [RoomAdd.model_validate(room) for room in rooms]
 
-    async with DBManager(session_factory=async_session_maker_null_pool) as db:
-        await db.hotels.add_batch(hotels_models)
-        await db.rooms.add_batch(rooms_models)
-        await db.commit()
+    async with DBManager(session_factory=async_session_maker_null_pool) as _db:
+        await _db.hotels.add_batch(hotels_models)
+        await _db.rooms.add_batch(rooms_models)
+        await _db.commit()
 
 
-@pytest.fixture(scope="session", autouse=True)
-async def register_user(setup_database):  # type: ignore
+@pytest.fixture(scope="session")
+async def ac():
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        user_data = await ac.post(
-            "/auth/register",
-            json={
-                "email": "kot@pes.com",
-                "password": "1234",
-                "first_name": "A",
-                "last_name": "B",
-            },
-        )
-        assert user_data.status_code == 200
+        yield ac
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def register_user(setup_database: Callable[..., Any], ac: AsyncClient):
+    user_data = await ac.post(
+        "/auth/register",
+        json={
+            "email": "kot@pes.com",
+            "password": "1234",
+            "first_name": "A",
+            "last_name": "B",
+        },
+    )
+    assert user_data.status_code == 200
