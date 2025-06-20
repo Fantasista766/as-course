@@ -40,7 +40,7 @@ class BaseRepository:
         model = result.scalars().one()
         return self.mapper.map_to_domain_entity(model)
 
-    async def add_batch(self, data: list[BaseModel]) -> Any:
+    async def add_batch(self, data: list[Any]) -> Any:
         add_model_stmt = (
             insert(self.model)
             .values([item.model_dump() for item in data])

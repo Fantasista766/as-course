@@ -4,9 +4,12 @@ from httpx import AsyncClient, ASGITransport
 import pytest
 
 from src.config import settings
-from src.database import Base, engine_null_pool
+from src.database import Base, engine_null_pool, async_session_maker_null_pool
 from src.main import app
 from src.models import *
+from src.schemas.hotels import HotelAdd
+from src.schemas.rooms import RoomAdd
+from src.utils.db_manager import DBManager
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -29,18 +32,13 @@ async def load_data_to_db(setup_database):  # type: ignore
     with open("tests/mock_rooms.json", "r") as f:
         rooms = json.load(f)
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test", follow_redirects=True
-    ) as ac:
-        for hotel in hotels:
-            hotel_data = await ac.post("/hotels", json=hotel)
-            assert hotel_data.status_code == 200
-        for room in rooms:
-            room_data = await ac.post(
-                f"/hotels/{room['hotel_id']}/rooms",
-                json=room,
-            )
-            assert room_data.status_code == 200
+    hotels_models = [HotelAdd.model_validate(hotel) for hotel in hotels]
+    rooms_models = [RoomAdd.model_validate(room) for room in rooms]
+
+    async with DBManager(session_factory=async_session_maker_null_pool) as db:
+        await db.hotels.add_batch(hotels_models)
+        await db.rooms.add_batch(rooms_models)
+        await db.commit()
 
 
 @pytest.fixture(scope="session", autouse=True)
