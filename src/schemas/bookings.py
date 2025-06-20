@@ -12,7 +12,7 @@ class BookingAdd(BaseModel):
 class BookingAddRequest(BookingAdd):
     user_id: int
     price: int
-    create_at: datetime
+    create_at: datetime | None = None
 
 
 class Booking(BookingAddRequest):
