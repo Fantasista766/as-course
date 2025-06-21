@@ -31,7 +31,7 @@ def cache(expire: int = 10) -> Any:
                 data_from_db = await f(*args, **kwargs)
                 if not data_from_db:
                     raise HTTPException(404, "Data not found")
-                if type(data_from_db) == list:
+                if type(data_from_db) is list:
                     data_iterable = True
                     data_schemas = [d.model_dump() for d in data_from_db]  # type: ignore
                 else:
