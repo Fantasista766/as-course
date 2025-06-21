@@ -80,3 +80,16 @@ async def register_user(setup_database: Callable[..., Any], ac: AsyncClient):
         },
     )
     assert user_data.status_code == 200
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def authenticated_ac(register_user: Callable[..., Any], ac: AsyncClient):
+    await ac.post(
+        "/auth/login",
+        json={
+            "email": "kot@pes.com",
+            "password": "1234",
+        },
+    )
+    assert "access_token" in ac.cookies
+    yield ac
