@@ -33,6 +33,12 @@ async def db() -> Any:
         yield db
 
 
+@pytest.fixture(scope="module")
+async def db_module() -> Any:
+    async for db_module in get_db_null_pool():
+        yield db_module
+
+
 app.dependency_overrides[get_db] = get_db_null_pool
 
 

@@ -37,22 +37,22 @@ async def test_add_booking(
         assert res["data"]["room_id"] == room_id
 
 
-@pytest.fixture(scope="function")
-async def delete_all_bookings(db: DBManager, authenticated_ac: AsyncClient):
+@pytest.fixture(scope="module")
+async def delete_all_bookings(db_module: DBManager, authenticated_ac: AsyncClient):
     response = await authenticated_ac.get("/auth/me")
     user_id = response.json()["id"]
-    response = await db.bookings.get_filtered(user_id=user_id)
+    response = await db_module.bookings.get_filtered(user_id=user_id)
     ids_to_delete = [booking.id for booking in response]
-    await db.bookings.delete_batch_by_ids(ids_to_delete=ids_to_delete)
-    await db.commit()
+    await db_module.bookings.delete_batch_by_ids(ids_to_delete=ids_to_delete)
+    await db_module.commit()
 
 
 @pytest.mark.parametrize(
     "room_id, date_from, date_to, status_code, bookings_amount",
     [
         (1, "2025-06-21", "2025-06-28", 200, 1),
-        (1, "2025-06-22", "2025-06-29", 200, 1),
-        (1, "2025-06-23", "2025-06-30", 200, 1),
+        (1, "2025-06-22", "2025-06-29", 200, 2),
+        (1, "2025-06-23", "2025-06-30", 200, 3),
     ],
 )
 async def test_add_and_get_my_bookings(
@@ -71,8 +71,6 @@ async def test_add_and_get_my_bookings(
     )
     assert response.status_code == status_code
 
-    response = await authenticated_ac.get(
-        "/bookings/me",
-    )
+    response = await authenticated_ac.get("/bookings/me")
     assert response.status_code == status_code
     assert len(response.json()) == bookings_amount
