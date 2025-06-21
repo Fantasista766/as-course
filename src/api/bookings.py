@@ -43,7 +43,7 @@ async def create_booking(
         raise HTTPException(
             status_code=404, detail=f"Номера с id {booking_data.room_id} нет в базе"
         )
-
+    hotel_data = await db.hotels.get_one_or_none(id=room_data.hotel_id)
     _booking_data = BookingAddRequest(
         price=room_data.price,
         user_id=user_id,
@@ -51,7 +51,7 @@ async def create_booking(
         **booking_data.model_dump(),
     )
     try:
-        booking = await db.bookings.add_booking(_booking_data)
+        booking = await db.bookings.add_booking(_booking_data, hotel_data.id)
         await db.commit()
     except Exception:
         raise HTTPException(status_code=404, detail="Нет свободных номеров на эти даты")
