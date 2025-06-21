@@ -23,13 +23,12 @@ async def register_user(
     res = await db.users.add(new_user_data)
     await db.commit()
 
-    return (
-        {"status": "OK"}
-        if res
-        else HTTPException(
-            status_code=401, detail="Пользователь с таким email уже зарегистрирован"
+    if not res:
+        raise HTTPException(
+            status_code=400, detail="Пользователь с таким email уже зарегистрирован"
         )
-    )
+
+    return {"status": "OK"}
 
 
 @router.post("/login", summary="Аутентификация пользователя")

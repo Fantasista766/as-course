@@ -3,17 +3,24 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "email, password, first_name, last_name",
+    "email, password, first_name, last_name, status_code",
     [
-        ("kot123@pes.com", "1234", "A", "B"),
-        ("dfasdf@pes.com", "1342sdfaef234", "Alna", "Bumaye"),
+        ("kot@pes.com", "1234", "A", "B", 400),
+        ("kot123@pes.com", "1234", "A", "B", 200),
+        ("dfasdf@pes.com", "1342sdfaef234", "Alna", "Bumaye", 200),
+        ("kotcom", "1234", "A", "B", 422),
     ],
 )
 async def test_auth_flow(
-    email: str, password: str, first_name: str, last_name: str, ac: AsyncClient
+    email: str,
+    password: str,
+    first_name: str,
+    last_name: str,
+    status_code: int,
+    ac: AsyncClient,
 ):
     # 1. Регистрация
-    user_data = await ac.post(
+    response = await ac.post(
         "/auth/register",
         json={
             "email": email,
@@ -22,7 +29,9 @@ async def test_auth_flow(
             "last_name": last_name,
         },
     )
-    assert user_data.status_code == 200
+    assert response.status_code == status_code
+    if status_code != 200:
+        return
 
     # 2. Логин
     # 2.1 Неуспешный
@@ -35,21 +44,27 @@ async def test_auth_flow(
     )
     assert response.status_code == 401
     # 2.2 Успешный
-    await ac.post(
+    response = await ac.post(
         "/auth/login",
         json={
             "email": email,
             "password": password,
         },
     )
+    assert response.status_code == 200
     assert "access_token" in ac.cookies
+    assert "access_token" in response.json()
 
     # 3. Получение инфы о пользователе
     response = await ac.get("/auth/me")
     user = response.json()
+    assert response.status_code == 200
     assert user["email"] == email
     assert user["first_name"] == first_name
     assert user["last_name"] == last_name
+    assert "id" in user
+    assert "password" not in user
+    assert "hashed_password" not in user
 
     # 4. Выход из системы
     await ac.post("/auth/logout")

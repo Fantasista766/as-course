@@ -76,7 +76,7 @@ async def ac() -> AsyncGenerator[AsyncClient, Any]:
 
 @pytest.fixture(scope="session", autouse=True)
 async def register_user(setup_database: Callable[..., Any], ac: AsyncClient):
-    user_data = await ac.post(
+    response = await ac.post(
         "/auth/register",
         json={
             "email": "kot@pes.com",
@@ -85,7 +85,7 @@ async def register_user(setup_database: Callable[..., Any], ac: AsyncClient):
             "last_name": "B",
         },
     )
-    assert user_data.status_code == 200
+    assert response.status_code == 200
 
 
 @pytest.fixture(scope="session")
