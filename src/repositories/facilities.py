@@ -16,13 +16,9 @@ class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesORM
     mapper = RoomFacilityDataMapper
 
-    async def set_room_facilities(
-        self, room_id: int, facilities_ids: list[int]
-    ) -> None:
+    async def set_room_facilities(self, room_id: int, facilities_ids: list[int]) -> None:
         # достаём все удобства номера
-        get_current_facilities_query = select(self.model.facility_id).filter_by(
-            room_id=room_id
-        )
+        get_current_facilities_query = select(self.model.facility_id).filter_by(room_id=room_id)
         res = await self.session.execute(get_current_facilities_query)
         current_room_facilities_ids = res.scalars().all()
         ids_to_delete = list(set(current_room_facilities_ids) - set(facilities_ids))

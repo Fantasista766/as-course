@@ -23,3 +23,5 @@ dependencies = [
     "ruff>=0.12.0",
     "sqlalchemy>=2.0.41",
 ]
+[tool.ruff]
+line-length=100

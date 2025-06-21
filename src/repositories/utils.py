@@ -24,9 +24,7 @@ def rooms_ids_for_booking(
     rooms_left_table = (
         select(
             RoomsORM.id.label("room_id"),
-            (RoomsORM.quantity - func.coalesce(rooms_count.c.rooms_booked, 0)).label(
-                "rooms_left"
-            ),
+            (RoomsORM.quantity - func.coalesce(rooms_count.c.rooms_booked, 0)).label("rooms_left"),
         )
         .select_from(RoomsORM)
         .outerjoin(rooms_count, RoomsORM.id == rooms_count.c.room_id)

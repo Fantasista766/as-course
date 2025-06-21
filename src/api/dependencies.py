@@ -64,7 +64,5 @@ async def check_facility_existence(db: DBDep, facility_id: int) -> int | None:
     """Проверка существования удобства по id"""
     facility_data = await db.facilities.get_one_or_none(id=facility_id)
     if not facility_data:
-        raise HTTPException(
-            status_code=404, detail=f"Удобства с id {facility_id} нет в базе"
-        )
+        raise HTTPException(status_code=404, detail=f"Удобства с id {facility_id} нет в базе")
     return facility_data.id

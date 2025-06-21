@@ -39,9 +39,7 @@ async def get_rooms(
 
 @router.get("/{room_id}", summary="Получить номер в отеле")
 @cache(expire=10)
-async def get_room(
-    db: DBDep, hotel_id: HotelIdDep, room_id: int
-) -> RoomWithRels | None:
+async def get_room(db: DBDep, hotel_id: HotelIdDep, room_id: int) -> RoomWithRels | None:
     return await db.rooms.get_one_or_none_with_rels(id=room_id, hotel_id=hotel_id)
 
 
@@ -79,8 +77,7 @@ async def create_room(
 
     if room_data.facilities_ids:
         rooms_facilities_data = [
-            RoomFacilityAdd(room_id=room.id, facility_id=f_id)
-            for f_id in room_data.facilities_ids
+            RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids
         ]
         res = await db.rooms_facilities.add_batch(rooms_facilities_data)  # type: ignore
         if not res:
@@ -122,9 +119,7 @@ async def partial_update_room(
     _room_data_dict = room_data.model_dump(exclude_unset=True)
     _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
 
-    result = await db.rooms.edit(
-        _room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id
-    )
+    result = await db.rooms.edit(_room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Номер не найден")
 

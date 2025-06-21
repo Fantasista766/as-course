@@ -17,9 +17,7 @@ def cache(expire: int = 10) -> Any:
             nonlocal data_iterable
             # ключ для редиса состоит из названия ручки и её аргументов простых типов
             custom_kwargs = [
-                f"{k}={v}"
-                for k, v in kwargs.items()
-                if "." not in v.__class__.__module__
+                f"{k}={v}" for k, v in kwargs.items() if "." not in v.__class__.__module__
             ]
             custom_kwargs = "/?" + "&".join(custom_kwargs) if custom_kwargs else ""
             route_name = f.__module__.split(".")[-1]

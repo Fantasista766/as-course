@@ -15,9 +15,7 @@ class BaseRepository:
     async def get_filtered(self, *filter: Any, **filter_by: Any) -> list[Any]:
         query = select(self.model).filter(*filter).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return [
-            self.mapper.map_to_domain_entity(model) for model in result.scalars().all()
-        ]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
     async def get_all(self, *args: Any, **kwargs: Any) -> list[Any]:
         return await self.get_filtered()
@@ -29,9 +27,7 @@ class BaseRepository:
         return self.mapper.map_to_domain_entity(model) if model else model
 
     async def add(self, data: BaseModel) -> Any:
-        add_model_stmt = (
-            insert(self.model).values(**data.model_dump()).returning(self.model)
-        )
+        add_model_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         try:
             result = await self.session.execute(add_model_stmt)
         except Exception as e:
@@ -42,9 +38,7 @@ class BaseRepository:
 
     async def add_batch(self, data: list[Any]) -> Any:
         add_model_stmt = (
-            insert(self.model)
-            .values([item.model_dump() for item in data])
-            .returning(self.model)
+            insert(self.model).values([item.model_dump() for item in data]).returning(self.model)
         )
         try:
             res = await self.session.execute(add_model_stmt)

@@ -40,9 +40,7 @@ async def test_booking_crud(db: DBManager):
         date_to=date(year=2026, month=1, day=22),
         price=100,  # type: ignore
     )
-    await db.bookings.edit(
-        update_booking_data, exclude_unset=True, id=read_booking_data.id
-    )
+    await db.bookings.edit(update_booking_data, exclude_unset=True, id=read_booking_data.id)
 
     # delete data
     await db.bookings.delete(id=read_booking_data.id)

@@ -17,8 +17,4 @@ class UsersRepository(BaseRepository):
         query = select(self.model).filter_by(email=email)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
-        return (
-            UserWithHashedPasswordDataMapper.map_to_domain_entity(model)
-            if model
-            else None
-        )
+        return UserWithHashedPasswordDataMapper.map_to_domain_entity(model) if model else None
