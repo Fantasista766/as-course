@@ -50,7 +50,9 @@ async def create_booking(
         create_at=datetime.now(),
         **booking_data.model_dump(),
     )
-
-    booking = await db.bookings.add(_booking_data)
-    await db.commit()
+    try:
+        booking = await db.bookings.add_booking(_booking_data)
+        await db.commit()
+    except Exception:
+        raise HTTPException(status_code=404, detail="Нет свободных номеров на эти даты")
     return {"status": "OK", "data": Booking.model_validate(booking)}
