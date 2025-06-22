@@ -28,5 +28,5 @@ class RoomsFacilitiesRepository(BaseRepository):
             RoomFacilityAdd(room_id=room_id, facility_id=f_id) for f_id in ids_to_insert
         ]
 
-        await self.add_batch(room_facilities_to_add)  # type: ignore
-        await self.delete_batch_by_ids(ids_to_delete)  # type: ignore
+        await self.add_batch(room_facilities_to_add)
+        await self.delete_batch_by_ids(ids_to_delete)

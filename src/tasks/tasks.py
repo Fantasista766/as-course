@@ -9,13 +9,13 @@ from src.tasks.celery_app import celery_instance
 from src.utils.db_manager import DBManager
 
 
-@celery_instance.task  # type: ignore
+@celery_instance.task
 def test_task() -> None:
     sleep(5)
     print("GOOD JOB")
 
 
-# @celery_instance.task  # type: ignore
+# @celery_instance.task
 def resize_image(image_path: str):
     widths = [100, 500, 1280, 1920, 3840, 7680]
     output_dir = "src/static/images"
@@ -26,7 +26,7 @@ def resize_image(image_path: str):
     name, ext = os.path.splitext(base_name)
 
     for width in widths:
-        img_resized = img.resize(  # type: ignore
+        img_resized = img.resize(
             (width, int(img.height * (width / img.width))), Image.Resampling.LANCZOS
         )
 
@@ -49,6 +49,6 @@ async def get_bookings_with_today_checkin_helper():
         print(f"{bookings=}")
 
 
-@celery_instance.task(name="booking_today_checkin")  # type: ignore
+@celery_instance.task(name="booking_today_checkin")
 def send_emails_to_users_with_today_checkin():
     asyncio.run(get_bookings_with_today_checkin_helper())

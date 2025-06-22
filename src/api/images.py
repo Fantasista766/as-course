@@ -13,5 +13,5 @@ def upload_image(file: UploadFile, background_tasks: BackgroundTasks):
     with open(image_path, "wb+") as new_file:
         shutil.copyfileobj(file.file, new_file)
 
-    # resize_image.delay(image_path)  # type: ignore
+    # resize_image.delay(image_path)
     background_tasks.add_task(resize_image, image_path)

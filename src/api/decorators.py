@@ -31,13 +31,13 @@ def cache(expire: int = 10) -> Any:
                     raise HTTPException(404, "Data not found")
                 if type(data_from_db) is list:
                     data_iterable = True
-                    data_schemas = [d.model_dump() for d in data_from_db]  # type: ignore
+                    data_schemas = [d.model_dump() for d in data_from_db]
                 else:
                     data_iterable = False
                     data_schemas = [data_from_db.model_dump()]
                 data_json = json.dumps(data_schemas, default=str)
                 await redis_manager.set(redis_key, data_json, expire)
-                return data_from_db  # type: ignore
+                return data_from_db
 
             data_dicts = json.loads(data_from_cache)
             print(f"{data_dicts=}")

@@ -79,7 +79,7 @@ async def create_room(
         rooms_facilities_data = [
             RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids
         ]
-        res = await db.rooms_facilities.add_batch(rooms_facilities_data)  # type: ignore
+        res = await db.rooms_facilities.add_batch(rooms_facilities_data)
         if not res:
             raise HTTPException(status_code=404, detail="Удобства не найдены")
     await db.commit()

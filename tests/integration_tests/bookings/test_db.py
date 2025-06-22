@@ -14,12 +14,12 @@ async def test_booking_crud(db: DBManager):
 
     # create data
     booking_data = BookingAddRequest(
-        user_id=user_id,  # type: ignore
+        user_id=user_id,
         room_id=room_id,
         date_from=create_date_from,
         date_to=create_date_to,
-        price=100,  # type: ignore
-        create_at=create_at,  # type: ignore
+        price=100,
+        create_at=create_at,
     )
     new_booking = await db.bookings.add(booking_data)
 
@@ -34,11 +34,11 @@ async def test_booking_crud(db: DBManager):
 
     # update data
     update_booking_data = BookingAddRequest(
-        user_id=user_id,  # type: ignore
+        user_id=user_id,
         room_id=room_id,
         date_from=date(year=2026, month=1, day=12),
         date_to=date(year=2026, month=1, day=22),
-        price=100,  # type: ignore
+        price=100,
     )
     await db.bookings.edit(update_booking_data, exclude_unset=True, id=read_booking_data.id)
 

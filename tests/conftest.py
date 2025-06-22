@@ -3,7 +3,7 @@ from typing import Any, AsyncGenerator, Callable
 from unittest import mock
 import json
 
-mock.patch("fastapi_cache.decorator.cache", lambda *args, **kwargs: lambda f: f).start()  # type: ignore
+mock.patch("fastapi_cache.decorator.cache", lambda *args, **kwargs: lambda f: f).start()
 
 from httpx import AsyncClient, ASGITransport
 import pytest
