@@ -3,36 +3,31 @@ from datetime import date
 from fastapi import HTTPException
 
 
-class ArmormException(Exception):
+class ArmorException(Exception):
     detail = "Неожиданная ошибка"
 
     def __init__(self, *args, **kwargs):
         super().__init__(self.detail, *args, **kwargs)
 
 
-class AllRoomsAreBookedException(ArmormException):
+class AllRoomsAreBookedException(ArmorException):
     detail = "Не осталось свободных номеров"
 
 
-class DateFromIsBeforeThanDateToException(ArmormException):
+class DateFromIsBeforeThanDateToException(ArmorException):
     detail = "Дата заезда не может быть позже даты выезда"
 
 
-class ObjectAlreadyExistsException(ArmormException):
+class ObjectAlreadyExistsException(ArmorException):
     detail = "Объект уже существует"
 
 
-class ObjectNotFoundException(ArmormException):
+class ObjectNotFoundException(ArmorException):
     detail = "Объект не найден"
 
 
-class ObjectToDeleteHasActiveRelations(ArmormException):
+class ObjectToDeleteHasActiveRelations(ArmorException):
     detail = "Удаляемый объект используется в других таблицах"
-
-
-def check_date_from_before_date_to(date_from: date, date_to: date) -> None:
-    if date_from >= date_to:
-        raise DateFromIsBeforeThanDateToException
 
 
 class ArmorHTTPException(HTTPException):
@@ -51,3 +46,8 @@ class HotelNotFoundHTTPException(ArmorHTTPException):
 class RoomNotFoundHTTPException(ArmorHTTPException):
     status_code = 404
     detail = "Номер не найден"
+
+
+def check_date_from_before_date_to(date_from: date, date_to: date) -> None:
+    if date_from >= date_to:
+        raise HTTPException(status_code=422, detail=DateFromIsBeforeThanDateToException.detail)
