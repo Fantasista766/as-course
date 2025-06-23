@@ -2,6 +2,7 @@ from datetime import date
 
 from sqlalchemy import select
 
+from src.exceptions import AllRoomsAreBooked
 from src.models.bookings import BookingsORM
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
@@ -27,6 +28,6 @@ class BookingsRepository(BaseRepository):
         result = await self.session.execute(rooms_ids_to_get)
         rooms_ids = result.unique().scalars().all()
         if _booking_data.room_id not in rooms_ids:
-            raise
+            raise AllRoomsAreBooked
 
-        return await super().add(_booking_data)
+        return await self.add(_booking_data)

@@ -7,3 +7,7 @@ class ProxyException(Exception):
 
 class ObjectNotFoundException(ProxyException):
     detail = "Объект не найден"
+
+
+class AllRoomsAreBooked(ProxyException):
+    detail = "Не осталось свободных номеров"
