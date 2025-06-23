@@ -2,10 +2,14 @@ from typing import Any
 
 from pydantic import BaseModel
 from sqlalchemy import delete, insert, select, update
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.exceptions import ObjectNotFoundException
+from src.exceptions import (
+    ObjectAlreadyExistsException,
+    ObjectNotFoundException,
+    ObjectToDeleteHasActiveRelations,
+)
 
 
 class BaseRepository:
@@ -40,11 +44,14 @@ class BaseRepository:
 
     async def add(self, data: BaseModel) -> Any:
         add_model_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+        result: Any = None
         try:
             result = await self.session.execute(add_model_stmt)
-        except Exception as e:
-            print(e)
-            return None
+        except IntegrityError as ex:
+            if "ForeignKeyViolationError" in str(ex):
+                raise ObjectNotFoundException
+            if "UniqueViolationError" in str(ex):
+                raise ObjectAlreadyExistsException
         model = result.scalars().one()
         return self.mapper.map_to_domain_entity(model)
 
@@ -53,18 +60,14 @@ class BaseRepository:
             insert(self.model).values([item.model_dump() for item in data]).returning(self.model)
         )
         try:
-            res = await self.session.execute(add_model_stmt)
-        except Exception as e:
-            print(e)
-            return None
-        return res
+            await self.session.execute(add_model_stmt)
+        except Exception:
+            raise ObjectNotFoundException
 
     async def edit(
         self, data: BaseModel, exclude_unset: bool = False, **filter_by: Any
     ) -> int | None:
-        result = await self.get_one_or_none(**filter_by)
-        if not result:
-            return 404
+        await self.get_one(**filter_by)
         edit_model_stmt = (
             update(self.model)
             .values(**data.model_dump(exclude_unset=exclude_unset))
@@ -73,11 +76,12 @@ class BaseRepository:
         await self.session.execute(edit_model_stmt)
 
     async def delete(self, **filter_by: Any) -> int | None:
-        result = await self.get_one_or_none(**filter_by)
-        if not result:
-            return 404
+        await self.get_one(**filter_by)
         delete_model_stmt = delete(self.model).filter_by(**filter_by)
-        await self.session.execute(delete_model_stmt)
+        try:
+            await self.session.execute(delete_model_stmt)
+        except IntegrityError:
+            raise ObjectToDeleteHasActiveRelations
 
     async def delete_batch_by_ids(self, ids_to_delete: list[int]) -> int | None:
         delete_model_stmt = delete(self.model).where(self.model.id.in_(ids_to_delete))
