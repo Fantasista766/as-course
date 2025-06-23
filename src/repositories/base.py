@@ -1,4 +1,5 @@
 from typing import Any
+import logging
 
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from pydantic import BaseModel
@@ -49,10 +50,16 @@ class BaseRepository:
         try:
             result = await self.session.execute(add_model_stmt)
         except IntegrityError as ex:
+            logging.error(
+                f"Не удалось добавить данные в БД, входные данные: {data}, тип ошибки: {type(ex.orig.__cause__)}"  # type: ignore
+            )
             if isinstance(ex.orig.__cause__, ForeignKeyViolationError):  # type: ignore
                 raise ObjectNotFoundException
             if isinstance(ex.orig.__cause__, UniqueViolationError):  # type: ignore
                 raise ObjectAlreadyExistsException
+            logging.error(
+                f"Незнакомая ошибка, входные данные: {data}, тип ошибки: {type(ex.orig.__cause__)}"  # type: ignore
+            )
             raise ex
         model = result.scalars().one()
         return self.mapper.map_to_domain_entity(model)
