@@ -6,9 +6,11 @@ from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep
 from src.exceptions import (
-    DateFromIsLaterThanDateToException,
+    HotelNotFoundHTTPException,
     ObjectNotFoundException,
     ObjectToDeleteHasActiveRelations,
+    RoomNotFoundHTTPException,
+    check_date_from_before_date_to,
 )
 from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import (
@@ -31,11 +33,10 @@ router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в о�
 async def get_rooms(
     db: DBDep,
     hotel_id: int,
-    date_from: date = Query(examples=["2025-06-19"]),
-    date_to: date = Query(examples=["2025-06-29"]),
+    date_from: date = Query(example="2025-06-19"),
+    date_to: date = Query(example="2025-06-29"),
 ) -> list[RoomWithRels]:
-    if date_from > date_to:
-        raise HTTPException(status_code=422, detail=DateFromIsLaterThanDateToException.detail)
+    check_date_from_before_date_to(date_from, date_to)
     return await db.rooms.get_filtered_by_time(
         hotel_id=hotel_id, date_from=date_from, date_to=date_to
     )
@@ -47,7 +48,7 @@ async def get_room(db: DBDep, hotel_id: int, room_id: int) -> RoomWithRels | Non
     try:
         return await db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
     except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Номер не найден")
+        raise RoomNotFoundHTTPException
 
 
 @router.post("/", summary="Создать новый номер в отеле")
@@ -79,11 +80,12 @@ async def create_room(
         }
     ),
 ) -> dict[str, str | Room]:
-    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
     try:
-        room = await db.rooms.add(_room_data)
+        await db.hotels.get_one(id=hotel_id)
     except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Отель не найден")
+        raise HotelNotFoundHTTPException
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
+    room = await db.rooms.add(_room_data)
 
     if room_data.facilities_ids:
         rooms_facilities_data = [
@@ -99,11 +101,13 @@ async def create_room(
 
 @router.put("/{room_id}", summary="Обновить данные о номере в отеле")
 async def update_room(db: DBDep, hotel_id: int, room_id: int, room_data: RoomAddRequest) -> Any:
-    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
     try:
-        await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
+        await db.hotels.get_one(id=hotel_id)
     except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Номер не найден")
+        raise HotelNotFoundHTTPException
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
+    await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
+
     if room_data.facilities_ids:
         try:
             await db.rooms_facilities.set_room_facilities(
@@ -127,13 +131,14 @@ async def partial_update_room(
     room_id: int,
     room_data: RoomPatchRequest,
 ):
+    try:
+        await db.hotels.get_one(id=hotel_id)
+    except ObjectNotFoundException:
+        raise HotelNotFoundHTTPException
     _room_data_dict = room_data.model_dump(exclude_unset=True)
     _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
 
-    try:
-        await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
-    except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Номер не найден")
+    await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
 
     if room_data.facilities_ids:
         try:
@@ -151,11 +156,13 @@ async def partial_update_room(
 @router.delete("/{room_id}", summary="Удалить номер в отеле")
 async def delete_room(db: DBDep, hotel_id: int, room_id: int):
     try:
+        await db.hotels.get_one(id=hotel_id)
+    except ObjectNotFoundException:
+        raise HotelNotFoundHTTPException
+    try:
         await db.rooms.delete(id=room_id, hotel_id=hotel_id)
     except ObjectToDeleteHasActiveRelations:
         raise HTTPException(status_code=409, detail="Номер имеет активные бронирования")
-    except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Номер не найден")
 
     await db.commit()
     return {"status": "OK"}

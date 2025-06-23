@@ -35,6 +35,6 @@ def downgrade() -> None:
         "users",
         sa.Column("password", sa.VARCHAR(length=200), autoincrement=False, nullable=False),
     )
-    op.drop_constraint(None, "users", type_="unique")
+    op.drop_constraint(None, "users", type_="unique")  # type: ignore
     op.drop_column("users", "hashed_password")
     # ### end Alembic commands ###

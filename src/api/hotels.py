@@ -1,10 +1,14 @@
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi import APIRouter, Body, Query
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, PaginationDep
-from src.exceptions import DateFromIsLaterThanDateToException, ObjectNotFoundException
+from src.exceptions import (
+    HotelNotFoundHTTPException,
+    ObjectNotFoundException,
+    check_date_from_before_date_to,
+)
 from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -23,8 +27,7 @@ async def get_hotels(
     date_from: date = Query(example="2025-06-19"),
     date_to: date = Query(example="2025-06-29"),
 ) -> list[Hotel]:
-    if date_from > date_to:
-        raise HTTPException(status_code=422, detail=DateFromIsLaterThanDateToException.detail)
+    check_date_from_before_date_to(date_from, date_to)
     per_page = pagination.per_page or 5
     page = pagination.page or 1
     return await db.hotels.get_filtered_by_time(
@@ -43,7 +46,7 @@ async def get_hotel(db: DBDep, hotel_id: int) -> Hotel | None:
     try:
         return await db.hotels.get_one(id=hotel_id)
     except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Отель не найден")
+        raise HotelNotFoundHTTPException
 
 
 @router.post("/", summary="Создать новый отель")
@@ -78,7 +81,7 @@ async def update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAdd):
     result = await db.hotels.edit(hotel_data, id=hotel_id)
     await db.commit()
     if result == 404:
-        raise HTTPException(status_code=404, detail="Отель не найден")
+        raise HotelNotFoundHTTPException
     return {"status": "OK"}
 
 
@@ -95,7 +98,7 @@ async def partial_update_hotel(
     result = await db.hotels.edit(hotel_data, exclude_unset=True, id=hotel_id)
     await db.commit()
     if result == 404:
-        raise HTTPException(status_code=404, detail="Отель не найден")
+        raise HotelNotFoundHTTPException
     return {"status": "OK"}
 
 
@@ -104,5 +107,5 @@ async def delete_hotel(db: DBDep, hotel_id: int):
     result = await db.hotels.delete(id=hotel_id)
     await db.commit()
     if result == 404:
-        raise HTTPException(status_code=404, detail="Отель не найден")
+        raise HotelNotFoundHTTPException
     return {"status": "OK"}

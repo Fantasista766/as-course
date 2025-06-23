@@ -1,5 +1,6 @@
 from typing import Any
 
+from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from pydantic import BaseModel
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -48,10 +49,11 @@ class BaseRepository:
         try:
             result = await self.session.execute(add_model_stmt)
         except IntegrityError as ex:
-            if "ForeignKeyViolationError" in str(ex):
+            if isinstance(ex.orig.__cause__, ForeignKeyViolationError):  # type: ignore
                 raise ObjectNotFoundException
-            if "UniqueViolationError" in str(ex):
+            if isinstance(ex.orig.__cause__, UniqueViolationError):  # type: ignore
                 raise ObjectAlreadyExistsException
+            raise ex
         model = result.scalars().one()
         return self.mapper.map_to_domain_entity(model)
 
