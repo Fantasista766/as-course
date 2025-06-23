@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Body
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, UserIdDep
+from src.exceptions import ObjectNotFoundException
 from src.schemas.bookings import Booking, BookingAdd, BookingAddRequest
 
 router = APIRouter(prefix="/bookings", tags=["Брони"])
@@ -38,12 +39,11 @@ async def create_booking(
         }
     ),
 ) -> dict[str, str | Booking]:
-    room_data = await db.rooms.get_one_or_none(id=booking_data.room_id)
-    if not room_data:
-        raise HTTPException(
-            status_code=404, detail=f"Номера с id {booking_data.room_id} нет в базе"
-        )
-    hotel_data = await db.hotels.get_one_or_none(id=room_data.hotel_id)
+    try:
+        room_data = await db.rooms.get_one(id=booking_data.room_id)
+    except ObjectNotFoundException:
+        raise HTTPException(status_code=400, detail="Номер не найден")
+    hotel_data = await db.hotels.get_one(id=room_data.hotel_id)
     _booking_data = BookingAddRequest(
         price=room_data.price,
         user_id=user_id,
