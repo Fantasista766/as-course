@@ -1,5 +1,6 @@
 from time import sleep
 import asyncio
+import logging
 import os
 
 from PIL import Image
@@ -17,6 +18,7 @@ def test_task() -> None:
 
 # @celery_instance.task
 def resize_image(image_path: str):
+    logging.debug(f"Вызывается функция {resize_image.__name__} с {image_path=}")
     widths = [100, 500, 1280, 1920, 3840, 7680]
     output_dir = "src/static/images"
 
@@ -36,7 +38,7 @@ def resize_image(image_path: str):
 
         img_resized.save(output_path)
 
-    print(f"Изображние сохранено в размерах {widths} в папке {output_dir}")
+    logging.info(f"Изображние сохранено в ширинах {widths} в папке {output_dir}")
 
 
 def get_db_manager():
@@ -46,7 +48,7 @@ def get_db_manager():
 async def get_bookings_with_today_checkin_helper():
     async with get_db_manager() as db:
         bookings = await db.bookings.get_bookings_with_today_checkin()
-        print(f"{bookings=}")
+        logging.debug(f"{bookings=}")
 
 
 @celery_instance.task(name="booking_today_checkin")

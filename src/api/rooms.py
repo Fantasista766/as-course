@@ -1,22 +1,26 @@
 from datetime import date
-from typing import Any
 
-from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi import APIRouter, Body, Query
 from fastapi_cache.decorator import cache
 
-from src.api.dependencies import (
-    DBDep,
-    HotelIdDep,
+from src.api.dependencies import DBDep
+from src.exceptions import (
+    FacilityNotFoundException,
+    FacilityNotFoundHTTPException,
+    HotelNotFoundException,
+    HotelNotFoundHTTPException,
+    RoomToDeleteHasActiveBookingsException,
+    RoomToDeleteHasActiveBookingsHTTPException,
+    RoomNotFoundException,
+    RoomNotFoundHTTPException,
 )
-from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import (
     Room,
-    RoomAdd,
     RoomAddRequest,
-    RoomPatch,
     RoomPatchRequest,
     RoomWithRels,
 )
+from src.services.rooms import RoomService
 
 router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в отеле"])
 
@@ -28,24 +32,25 @@ router = APIRouter(prefix="/hotels/{hotel_id}/rooms", tags=["Номера в о�
 @cache(expire=10)
 async def get_rooms(
     db: DBDep,
-    hotel_id: HotelIdDep,
-    date_from: date = Query(examples=["2025-06-19"]),
-    date_to: date = Query(examples=["2025-06-29"]),
+    hotel_id: int,
+    date_from: date = Query(example="2025-06-19"),
+    date_to: date = Query(example="2025-06-29"),
 ) -> list[RoomWithRels]:
-    return await db.rooms.get_filtered_by_time(
-        hotel_id=hotel_id, date_from=date_from, date_to=date_to
-    )
+    return await RoomService(db).get_filtered_by_time(hotel_id, date_from, date_to)
 
 
 @router.get("/{room_id}", summary="Получить номер в отеле")
 @cache(expire=10)
-async def get_room(db: DBDep, hotel_id: HotelIdDep, room_id: int) -> RoomWithRels | None:
-    return await db.rooms.get_one_or_none_with_rels(id=room_id, hotel_id=hotel_id)
+async def get_room(db: DBDep, hotel_id: int, room_id: int) -> RoomWithRels | None:
+    try:
+        return await RoomService(db).get_one_with_rels(room_id, hotel_id)
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
 
 
 @router.post("/", summary="Создать новый номер в отеле")
 async def create_room(
-    hotel_id: HotelIdDep,
+    hotel_id: int,
     db: DBDep,
     room_data: RoomAddRequest = Body(
         openapi_examples={
@@ -72,37 +77,28 @@ async def create_room(
         }
     ),
 ) -> dict[str, str | Room]:
-    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-    room = await db.rooms.add(_room_data)
-
-    if room_data.facilities_ids:
-        rooms_facilities_data = [
-            RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids
-        ]
-        res = await db.rooms_facilities.add_batch(rooms_facilities_data)
-        if not res:
-            raise HTTPException(status_code=404, detail="Удобства не найдены")
-    await db.commit()
-
-    return {"status": "OK", "data": Room.model_validate(room)}
+    try:
+        room = await RoomService(db).add_room(hotel_id, room_data)
+        return {"status": "OK", "data": room}
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except FacilityNotFoundException:
+        raise FacilityNotFoundHTTPException
 
 
 @router.put("/{room_id}", summary="Обновить данные о номере в отеле")
 async def update_room(
-    db: DBDep, hotel_id: HotelIdDep, room_id: int, room_data: RoomAddRequest
-) -> Any:
-    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-
-    result = await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
-    if result == 404:
-        raise HTTPException(status_code=404, detail="Номер не найден")
-    if room_data.facilities_ids:
-        await db.rooms_facilities.set_room_facilities(
-            room_id, facilities_ids=room_data.facilities_ids
-        )
-
-    await db.commit()
-    return {"status": "OK"}
+    db: DBDep, hotel_id: int, room_id: int, room_data: RoomAddRequest
+) -> dict[str, str]:
+    try:
+        await RoomService(db).edit_room(hotel_id, room_id, room_data)
+        return {"status": "OK"}
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
+    except FacilityNotFoundException:
+        raise FacilityNotFoundHTTPException
 
 
 @router.patch(
@@ -112,31 +108,29 @@ async def update_room(
 )
 async def partial_update_room(
     db: DBDep,
-    hotel_id: HotelIdDep,
+    hotel_id: int,
     room_id: int,
     room_data: RoomPatchRequest,
-):
-    _room_data_dict = room_data.model_dump(exclude_unset=True)
-    _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
-
-    result = await db.rooms.edit(_room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id)
-    if result == 404:
-        raise HTTPException(status_code=404, detail="Номер не найден")
-
-    if room_data.facilities_ids:
-        await db.rooms_facilities.set_room_facilities(
-            room_id, facilities_ids=room_data.facilities_ids
-        )
-
-    await db.commit()
-
-    return {"status": "OK"}
+) -> dict[str, str]:
+    try:
+        await RoomService(db).partial_edit_room(hotel_id, room_id, room_data)
+        return {"status": "OK"}
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
+    except FacilityNotFoundException:
+        raise FacilityNotFoundHTTPException
 
 
 @router.delete("/{room_id}", summary="Удалить номер в отеле")
-async def delete_room(db: DBDep, hotel_id: HotelIdDep, room_id: int):
-    result = await db.rooms.delete(id=room_id, hotel_id=hotel_id)
-    await db.commit()
-    if result == 404:
-        raise HTTPException(status_code=404, detail="Номер не найден")
-    return {"status": "OK"}
+async def delete_room(db: DBDep, hotel_id: int, room_id: int) -> dict[str, str]:
+    try:
+        await RoomService(db).delete_room(hotel_id, room_id)
+        return {"status": "OK"}
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
+    except RoomToDeleteHasActiveBookingsException:
+        raise RoomToDeleteHasActiveBookingsHTTPException
