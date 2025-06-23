@@ -1,7 +1,11 @@
 from datetime import date
 
 from src.api.dependencies import PaginationDep
-from src.exceptions import check_date_from_before_date_to
+from src.exceptions import (
+    HotelNotFoundException,
+    ObjectNotFoundException,
+    check_date_from_before_date_to,
+)
 from src.schemas.hotels import Hotel, HotelAdd, HotelPatch
 from src.services.base import BaseService
 
@@ -30,19 +34,23 @@ class HotelService(BaseService):
     async def get_hotel(self, hotel_id: int) -> Hotel:
         return await self.db.hotels.get_one(id=hotel_id)
 
-    async def add_hotel(self, hotel_data: HotelAdd) -> dict[str, str | Hotel]:
+    async def add_hotel(self, hotel_data: HotelAdd) -> Hotel:
         hotel = await self.db.hotels.add(hotel_data)
         await self.db.commit()
-        return {"status": "OK", "data": Hotel.model_validate(hotel)}
+        return Hotel.model_validate(hotel)
 
     async def edit_hotel(
         self, hotel_id: int, hotel_data: HotelAdd | HotelPatch, exclude_unset: bool = False
-    ) -> dict[str, str]:
+    ) -> None:
         await self.db.hotels.edit(hotel_data, id=hotel_id, exclude_unset=exclude_unset)
         await self.db.commit()
-        return {"status": "OK"}
 
-    async def delete_hotel(self, hotel_id: int) -> dict[str, str]:
+    async def delete_hotel(self, hotel_id: int) -> None:
         await self.db.hotels.delete(id=hotel_id)
         await self.db.commit()
-        return {"status": "OK"}
+
+    async def get_hotel_with_check(self, hotel_id: int) -> Hotel:
+        try:
+            return await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundException

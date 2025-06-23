@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.exceptions import (
     ObjectAlreadyExistsException,
     ObjectNotFoundException,
-    ObjectToDeleteHasActiveRelations,
+    ObjectToDeleteHasActiveRelationsException,
 )
 
 
@@ -28,6 +28,11 @@ class BaseRepository:
 
     async def get_all(self, *args: Any, **kwargs: Any) -> list[Any]:
         return await self.get_filtered()
+
+    async def get_batch_by_ids(self, ids_to_get: list[int]) -> list[int] | None:
+        query = select(self.model).where(self.model.id.in_(ids_to_get))
+        result = await self.session.execute(query)
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
     async def get_one_or_none(self, **filter_by: Any) -> Any:
         query = select(self.model).filter_by(**filter_by)
@@ -90,7 +95,7 @@ class BaseRepository:
         try:
             await self.session.execute(delete_model_stmt)
         except IntegrityError:
-            raise ObjectToDeleteHasActiveRelations
+            raise ObjectToDeleteHasActiveRelationsException
 
     async def delete_batch_by_ids(self, ids_to_delete: list[int]) -> int | None:
         delete_model_stmt = delete(self.model).where(self.model.id.in_(ids_to_delete))

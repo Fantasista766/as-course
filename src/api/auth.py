@@ -1,9 +1,18 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Response
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, UserIdDep
-from src.exceptions import ObjectAlreadyExistsException
-from src.schemas.users import UserAdd, UserRegister, UserLogin
+from src.exceptions import (
+    InvalidJWTTokenException,
+    InvalidJWTTokenHTTPException,
+    UserAlreadyExistsException,
+    UserAlreadyExistsHTTPException,
+    UserNotFoundException,
+    UserNotFoundHTTPException,
+    WrongPasswordException,
+    WrongPasswordHTTPException,
+)
+from src.schemas.users import UserRegister, UserLogin
 from src.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутентификация"])
@@ -13,21 +22,12 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутент
 async def register_user(
     db: DBDep,
     user_data: UserRegister,
-):
-    hashed_password = AuthService().hash_password(user_data.password)
-    new_user_data = UserAdd(
-        first_name=user_data.first_name,
-        last_name=user_data.last_name,
-        email=user_data.email,
-        hashed_password=hashed_password,
-    )
+) -> dict[str, str]:
     try:
-        await db.users.add(new_user_data)
-    except ObjectAlreadyExistsException:
-        raise HTTPException(status_code=409, detail="Пользователь с таким email уже существует")
-    await db.commit()
-
-    return {"status": "OK"}
+        await AuthService(db).register_user(user_data)
+        return {"status": "OK"}
+    except UserAlreadyExistsException:
+        raise UserAlreadyExistsHTTPException
 
 
 @router.post("/login", summary="Аутентификация пользователя")
@@ -35,26 +35,29 @@ async def login_user(
     db: DBDep,
     user_data: UserLogin,
     response: Response,
-):
-    user = await db.users.get_user_with_hashed_password(email=user_data.email)
-    if not user:
-        raise HTTPException(status_code=401, detail="Пользователь с таким email не зарегистрирован")
-    if not AuthService().verify_password(user_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Пароль неверный")
-
-    access_token = AuthService().create_access_token({"user_id": user.id})
-    response.set_cookie("access_token", access_token)
-    return {"access_token": access_token}
+) -> dict[str, str]:
+    try:
+        access_token = await AuthService(db).login_user(user_data)
+        response.set_cookie("access_token", access_token)
+        return {"access_token": access_token}
+    except InvalidJWTTokenException:
+        raise InvalidJWTTokenHTTPException
+    except UserNotFoundException:
+        raise UserNotFoundHTTPException
+    except WrongPasswordException:
+        raise WrongPasswordHTTPException
 
 
 @router.post("/logout")
 async def logout_user(response: Response):
-    response.delete_cookie("access_token")
+    await AuthService().logout_user(response)
     return {"status": "OK"}
 
 
 @router.get("/me")
 @cache(expire=10)
 async def get_me(db: DBDep, user_id: UserIdDep):
-    user = await db.users.get_one_or_none(id=user_id)
-    return user
+    try:
+        return await AuthService(db).get_user(user_id)
+    except UserNotFoundException:
+        raise UserNotFoundHTTPException

@@ -63,13 +63,15 @@ async def create_hotel(
         }
     ),
 ) -> dict[str, str | Hotel]:
-    return await HotelService(db).add_hotel(hotel_data)
+    hotel = await HotelService(db).add_hotel(hotel_data)
+    return {"status": "OK", "data": hotel}
 
 
 @router.put("/{hotel_id}", summary="Обновить данные об отеле")
 async def update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAdd) -> dict[str, str]:
     try:
-        return await HotelService(db).edit_hotel(hotel_id, hotel_data)
+        await HotelService(db).edit_hotel(hotel_id, hotel_data)
+        return {"status": "OK"}
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
 
@@ -85,7 +87,8 @@ async def partial_update_hotel(
     hotel_data: HotelPatch,
 ) -> dict[str, str]:
     try:
-        return await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=True)
+        await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=True)
+        return {"status": "OK"}
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
 
@@ -93,6 +96,7 @@ async def partial_update_hotel(
 @router.delete("/{hotel_id}", summary="Удалить отель")
 async def delete_hotel(db: DBDep, hotel_id: int) -> dict[str, str]:
     try:
-        return await HotelService(db).delete_hotel(hotel_id)
+        await HotelService(db).delete_hotel(hotel_id)
+        return {"status": "OK"}
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
