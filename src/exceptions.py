@@ -7,7 +7,7 @@ class ArmormException(Exception):
     detail = "Неожиданная ошибка"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(self.detail, **kwargs)
+        super().__init__(self.detail, *args, **kwargs)
 
 
 class AllRoomsAreBookedException(ArmormException):
@@ -40,7 +40,7 @@ class ArmorHTTPException(HTTPException):
     detail = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__(self.status_code, self.detail, **kwargs)
+        super().__init__(self.status_code, self.detail, *args, **kwargs)
 
 
 class HotelNotFoundHTTPException(ArmorHTTPException):
