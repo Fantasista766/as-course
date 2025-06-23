@@ -5,7 +5,7 @@ import pytest
 @pytest.mark.parametrize(
     "email, password, first_name, last_name, status_code",
     [
-        ("kot@pes.com", "1234", "A", "B", 400),
+        ("kot@pes.com", "1234", "A", "B", 409),
         ("kot123@pes.com", "1234", "A", "B", 200),
         ("dfasdf@pes.com", "1342sdfaef234", "Alna", "Bumaye", 200),
         ("kotcom", "1234", "A", "B", 422),
