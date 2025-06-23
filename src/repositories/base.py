@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Sequence
 import logging
 
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
@@ -29,7 +29,7 @@ class BaseRepository:
     async def get_all(self, *args: Any, **kwargs: Any) -> list[Any]:
         return await self.get_filtered()
 
-    async def get_batch_by_ids(self, ids_to_get: list[int]) -> list[int] | None:
+    async def get_batch_by_ids(self, ids_to_get: list[int]) -> Sequence[BaseModel] | None:
         query = select(self.model).where(self.model.id.in_(ids_to_get))
         result = await self.session.execute(query)
         return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]

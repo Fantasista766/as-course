@@ -28,20 +28,20 @@ class RoomService(BaseService):
         self, hotel_id: int, date_from: date, date_to: date
     ) -> list[RoomWithRels]:
         check_date_from_before_date_to(date_from, date_to)
-        return await self.db.rooms.get_filtered_by_time(
+        return await self.db.rooms.get_filtered_by_time(  # type: ignore
             hotel_id=hotel_id, date_from=date_from, date_to=date_to
         )
 
     async def get_one_with_rels(self, room_id: int, hotel_id: int) -> RoomWithRels:
-        return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
+        return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)  # type: ignore
 
     async def add_room(self, hotel_id: int, room_data: RoomAddRequest) -> Room:
         try:
-            await self.db.hotels.get_one(id=hotel_id)
+            await self.db.hotels.get_one(id=hotel_id)  # type: ignore
         except ObjectNotFoundException:
             raise HotelNotFoundException
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-        room = await self.db.rooms.add(_room_data)
+        room = await self.db.rooms.add(_room_data)  # type: ignore
 
         if room_data.facilities_ids:
             rooms_facilities_data = [
@@ -52,7 +52,7 @@ class RoomService(BaseService):
                 await self.db.rooms_facilities.add_batch(rooms_facilities_data)  # type: ignore
             except ObjectNotFoundException:
                 raise FacilityNotFoundException
-        await self.db.commit()
+        await self.db.commit()  # type: ignore
 
         return Room.model_validate(room)
 
@@ -61,13 +61,14 @@ class RoomService(BaseService):
         await self.get_room_with_check(room_id)
 
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-        await self.db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
-        FacilityService(self.db).get_facilities_with_check(room_data.facilities_ids)
-        await self.db.rooms_facilities.set_room_facilities(
-            room_id, facilities_ids=room_data.facilities_ids
-        )
+        await self.db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)  # type: ignore
+        if room_data.facilities_ids is not None:
+            await FacilityService(self.db).get_facilities_with_check(room_data.facilities_ids)
+            await self.db.rooms_facilities.set_room_facilities(  # type: ignore
+                room_id, facilities_ids=room_data.facilities_ids
+            )
 
-        await self.db.commit()
+        await self.db.commit()  # type: ignore
 
     async def partial_edit_room(
         self,
@@ -80,26 +81,26 @@ class RoomService(BaseService):
 
         _room_data_dict = room_data.model_dump(exclude_unset=True)
         _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
-        await self.db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
+        await self.db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)  # type: ignore
         if room_data.facilities_ids:
-            FacilityService(self.db).get_facilities_with_check(room_data.facilities_ids)
-            await self.db.rooms_facilities.set_room_facilities(
+            await FacilityService(self.db).get_facilities_with_check(room_data.facilities_ids)
+            await self.db.rooms_facilities.set_room_facilities(  # type: ignore
                 room_id, facilities_ids=room_data.facilities_ids
             )
-        await self.db.commit()
+        await self.db.commit()  # type: ignore
 
     async def delete_room(self, hotel_id: int, room_id: int) -> None:
         await HotelService(self.db).get_hotel_with_check(hotel_id)
         await self.get_room_with_check(room_id)
         try:
-            await self.db.rooms.delete(id=room_id, hotel_id=hotel_id)
+            await self.db.rooms.delete(id=room_id, hotel_id=hotel_id)  # type: ignore
         except ObjectToDeleteHasActiveRelationsException:
             raise RoomToDeleteHasActiveBookingsException
 
-        await self.db.commit()
+        await self.db.commit()  # type: ignore
 
     async def get_room_with_check(self, room_id: int) -> Room:
         try:
-            return await self.db.rooms.get_one(id=room_id)
+            return await self.db.rooms.get_one(id=room_id)  # type: ignore
         except ObjectNotFoundException:
             raise RoomNotFoundException

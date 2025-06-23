@@ -30,22 +30,22 @@ class AuthService(BaseService):
             hashed_password=hashed_password,
         )
         try:
-            await self.db.users.add(new_user_data)
+            await self.db.users.add(new_user_data)  # type: ignore
         except ObjectAlreadyExistsException:
             raise UserAlreadyExistsException
 
-        await self.db.commit()
+        await self.db.commit()  # type: ignore
 
     async def login_user(self, user_data: UserLogin) -> str:
         try:
-            user = await self.db.users.get_user_with_hashed_password(email=user_data.email)
+            user = await self.db.users.get_user_with_hashed_password(email=user_data.email)  # type: ignore
             self.verify_password(user_data.password, user.hashed_password)
             return self.create_access_token({"user_id": user.id})
         except ObjectNotFoundException:
             raise UserNotFoundException
 
     async def get_user(self, user_id: int) -> str:
-        return await self.db.users.get_one(id=user_id)
+        return await self.db.users.get_one(id=user_id)  # type: ignore
 
     async def logout_user(self, response: Response) -> None:
         response.delete_cookie("access_token")
@@ -56,7 +56,7 @@ class AuthService(BaseService):
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         to_encode |= {"exp": expire}
-        encoded_jwt = jwt.encode(
+        encoded_jwt = jwt.encode(  # type: ignore
             to_encode, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
         )
         return encoded_jwt
@@ -70,6 +70,6 @@ class AuthService(BaseService):
 
     def decode_token(self, token: str) -> dict[str, Any]:
         try:
-            return jwt.decode(token, key=settings.JWT_SECRET_KEY, algorithms=settings.JWT_ALGORITHM)
+            return jwt.decode(token, key=settings.JWT_SECRET_KEY, algorithms=settings.JWT_ALGORITHM)  # type: ignore
         except jwt.exceptions.DecodeError as _:
             raise InvalidJWTTokenException
