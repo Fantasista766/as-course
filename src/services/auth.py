@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from fastapi import Response
+from fastapi import Request, Response
 from passlib.context import CryptContext
 import jwt
 
 from src.config import settings
 from src.exceptions import (
-    InvalidJWTTokenException,
+    JWTMissingException,
+    InvalidJWTException,
     ObjectAlreadyExistsException,
     ObjectNotFoundException,
     UserAlreadyExistsException,
@@ -50,6 +51,12 @@ class AuthService(BaseService):
     async def logout_user(self, response: Response) -> None:
         response.delete_cookie("access_token")
 
+    def get_token(self, request: Request) -> str:
+        try:
+            return request.cookies["access_token"]
+        except KeyError:
+            raise JWTMissingException
+
     def create_access_token(self, data: dict[str, Any]) -> str:
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + timedelta(
@@ -72,4 +79,4 @@ class AuthService(BaseService):
         try:
             return jwt.decode(token, key=settings.JWT_SECRET_KEY, algorithms=settings.JWT_ALGORITHM)  # type: ignore
         except jwt.exceptions.DecodeError as _:
-            raise InvalidJWTTokenException
+            raise InvalidJWTException

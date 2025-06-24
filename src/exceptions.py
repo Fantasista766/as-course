@@ -14,12 +14,16 @@ class AllRoomsAreBookedException(ArmorException):
     detail = "Не осталось свободных номеров"
 
 
-class DateFromIsBeforeThanDateToException(ArmorException):
+class DateFromBeforeDateToException(ArmorException):
     detail = "Дата заезда не может быть позже даты выезда"
 
 
-class InvalidJWTTokenException(ArmorException):
+class InvalidJWTException(ArmorException):
     detail = "Неверный токен"
+
+
+class JWTMissingException(ArmorException):
+    detail = "Токен отсутствует"
 
 
 class ObjectAlreadyExistsException(ArmorException):
@@ -75,6 +79,11 @@ class AllRoomsAreBookedHTTPException(ArmorHTTPException):
     detail = "Не осталось свободных номеров"
 
 
+class DateFromBeforeDateToHTTPException(ArmorHTTPException):
+    status_code = 422
+    detail = "Дата заезда не может быть позже даты выезда"
+
+
 class FacilityNotFoundHTTPException(ArmorHTTPException):
     status_code = 404
     detail = "Удобство не найдено"
@@ -85,9 +94,14 @@ class HotelNotFoundHTTPException(ArmorHTTPException):
     detail = "Отель не найден"
 
 
-class InvalidJWTTokenHTTPException(ArmorHTTPException):
+class InvalidJWTHTTPException(ArmorHTTPException):
     status_code = 401
     detail = "Неверный токен"
+
+
+class JWTMissingHTTPException(ArmorHTTPException):
+    status_code = 401
+    detail = "Токен отсутствует"
 
 
 class RoomToDeleteHasActiveBookingsHTTPException(ArmorException):
@@ -117,4 +131,4 @@ class WrongPasswordHTTPException(ArmorHTTPException):
 
 def check_date_from_before_date_to(date_from: date, date_to: date) -> None:
     if date_from >= date_to:
-        raise HTTPException(status_code=422, detail=DateFromIsBeforeThanDateToException.detail)
+        raise DateFromBeforeDateToHTTPException

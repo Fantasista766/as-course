@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import Depends, Query, HTTPException, Request
+from fastapi import Depends, Query, Request
 from pydantic import BaseModel
 
 from src.database import async_session_maker
+from src.exceptions import JWTMissingException, JWTMissingHTTPException
 from src.services.auth import AuthService
 from src.utils.db_manager import DBManager
 
@@ -22,14 +23,14 @@ class PaginationParams(BaseModel):
 PaginationDep = Annotated[PaginationParams, Depends()]
 
 
-def get_token(request: Request) -> str:
-    token = request.cookies.get("access_token", "")
-    if not token:
-        raise HTTPException(status_code=401, detail="Вы не предоставили токен доступа")
-    return token
+async def get_token(request: Request) -> str:
+    try:
+        return AuthService().get_token(request)
+    except JWTMissingException:
+        raise JWTMissingHTTPException
 
 
-def get_current_user_id(token: str = Depends(get_token)) -> int:
+async def get_current_user_id(token: str = Depends(get_token)) -> int:
     data = AuthService().decode_token(token)
     return data["user_id"]
 

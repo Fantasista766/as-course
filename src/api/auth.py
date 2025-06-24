@@ -3,8 +3,8 @@ from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, UserIdDep
 from src.exceptions import (
-    InvalidJWTTokenException,
-    InvalidJWTTokenHTTPException,
+    InvalidJWTException,
+    InvalidJWTHTTPException,
     UserAlreadyExistsException,
     UserAlreadyExistsHTTPException,
     UserNotFoundException,
@@ -40,8 +40,8 @@ async def login_user(
         access_token = await AuthService(db).login_user(user_data)
         response.set_cookie("access_token", access_token)
         return {"access_token": access_token}
-    except InvalidJWTTokenException:
-        raise InvalidJWTTokenHTTPException
+    except InvalidJWTException:
+        raise InvalidJWTHTTPException
     except UserNotFoundException:
         raise UserNotFoundHTTPException
     except WrongPasswordException:
