@@ -43,5 +43,5 @@ docker run --name booking_cache \
 docker run --name booking_nginx \
    --volume ./nginx.conf:/etc/nginx/nginx.conf \
    --network=my_network \
-   --rm -p 80:80 nginx
+   -d -p 80:80 nginx
 ```
