@@ -25,7 +25,7 @@ docker network create my_network
 docker run --name booking_db \
    -p 6432:5432  \
    -e POSTGRES_USER=postgres_user \
-   -e POSTGRES_PASSWORD=postgres_password \
+   -e POSTGRES_PASSWORD={password} \
    -e POSTGRES_DB=booking \
    --network=my_network \
    --volume pg-booking-data:/var/lib/postresql/data \
