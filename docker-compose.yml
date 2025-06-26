@@ -3,7 +3,7 @@ services:
     container_name: booking_back
     build:
       context: .
-    ports:
+    # ports:
       # - 7777:8000
     networks:
       - my_network
