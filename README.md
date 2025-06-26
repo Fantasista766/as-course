@@ -3,6 +3,11 @@
    - накатить таблицы в бд `alembic upgrade head`
 
 ```
+git config --local user.name "Дмитрий Нестеров"
+git config --local user.email "proxxx766@gmail.com"
+```
+
+```
 celery --app=src.tasks.celery_app:celery_instance worker -l INFO
 celery --app=src.tasks.celery_app:celery_instance beat -l INFO
 
