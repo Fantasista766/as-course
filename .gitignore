@@ -11,5 +11,4 @@ wheels/
 
 .env
 .env-test
-src/migrations/versions
 src/static/
