@@ -42,6 +42,8 @@ docker run --name booking_cache \
 ```
 docker run --name booking_nginx \
    --volume ./nginx.conf:/etc/nginx/nginx.conf \
+   --volume /etc/letsencrypt:/etc/letsencrypt \
+   --volume /var/lib/letsencrypt:/var/lib/letsencrypt \
    --network=my_network \
-   -d -p 80:80 nginx
+   -d -p 443:443 nginx
 ```
