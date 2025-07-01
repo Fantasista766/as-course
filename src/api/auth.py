@@ -5,6 +5,8 @@ from src.api.dependencies import DBDep, UserIdDep
 from src.exceptions import (
     InvalidJWTException,
     InvalidJWTHTTPException,
+    PasswordTooShortException,
+    PasswordTooShortHTTPException,
     UserAlreadyExistsException,
     UserAlreadyExistsHTTPException,
     UserNotFoundException,
@@ -26,6 +28,8 @@ async def register_user(
     try:
         await AuthService(db).register_user(user_data)
         return {"status": "OK"}
+    except PasswordTooShortException:
+        raise PasswordTooShortHTTPException
     except UserAlreadyExistsException:
         raise UserAlreadyExistsHTTPException
 

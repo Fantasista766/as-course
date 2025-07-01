@@ -30,12 +30,16 @@ class ObjectAlreadyExistsException(ArmorException):
     detail = "Объект уже существует"
 
 
-class UserAlreadyExistsException(ObjectAlreadyExistsException):
-    detail = "Пользователь уже существует"
-
-
 class ObjectNotFoundException(ArmorException):
     detail = "Объект не найден"
+
+
+class PasswordTooShortException(ArmorException):
+    detail = "Пароль слишком короткий"
+
+
+class UserAlreadyExistsException(ObjectAlreadyExistsException):
+    detail = "Пользователь уже существует"
 
 
 class FacilityNotFoundException(ObjectNotFoundException):
@@ -64,6 +68,9 @@ class RoomToDeleteHasActiveBookingsException(ObjectToDeleteHasActiveRelationsExc
 
 class WrongPasswordException(ArmorException):
     detail = "Неверный пароль"
+
+
+###########################################################################################
 
 
 class ArmorHTTPException(HTTPException):
@@ -102,6 +109,11 @@ class InvalidJWTHTTPException(ArmorHTTPException):
 class JWTMissingHTTPException(ArmorHTTPException):
     status_code = 401
     detail = "Токен отсутствует"
+
+
+class PasswordTooShortHTTPException(ArmorException):
+    status_code = 422
+    detail = "Пароль слишком короткий"
 
 
 class RoomToDeleteHasActiveBookingsHTTPException(ArmorException):

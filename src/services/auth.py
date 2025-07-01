@@ -11,6 +11,7 @@ from src.exceptions import (
     InvalidJWTException,
     ObjectAlreadyExistsException,
     ObjectNotFoundException,
+    PasswordTooShortException,
     UserAlreadyExistsException,
     UserNotFoundException,
     WrongPasswordException,
@@ -23,6 +24,8 @@ class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def register_user(self, user_data: UserRegister) -> None:
+        if len(user_data.password) < 8:
+            raise PasswordTooShortException
         hashed_password = self.hash_password(user_data.password)
         new_user_data = UserAdd(
             first_name=user_data.first_name,
