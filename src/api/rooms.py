@@ -9,8 +9,6 @@ from src.exceptions import (
     FacilityNotFoundHTTPException,
     HotelNotFoundException,
     HotelNotFoundHTTPException,
-    NegativeFacilityIDException,
-    NegativeFacilityIDHTTPException,
     RoomAlreadyExistsException,
     RoomAlreadyExistsHTTPException,
     RoomPatchEmptyBodyException,
@@ -92,8 +90,6 @@ async def create_room(
         raise FacilityNotFoundHTTPException
     except RoomAlreadyExistsException:
         raise RoomAlreadyExistsHTTPException
-    except NegativeFacilityIDException:
-        raise NegativeFacilityIDHTTPException
 
 
 @router.put("/{room_id}", summary="Обновить данные о номере в отеле")
