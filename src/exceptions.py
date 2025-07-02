@@ -30,6 +30,10 @@ class ObjectAlreadyExistsException(ArmorException):
     detail = "Объект уже существует"
 
 
+class FacilityAlreadyExistsException(ObjectAlreadyExistsException):
+    detail = "Удобство уже существует"
+
+
 class ObjectNotFoundException(ArmorException):
     detail = "Объект не найден"
 
@@ -93,6 +97,11 @@ class AllRoomsAreBookedHTTPException(ArmorHTTPException):
 class DateFromBeforeDateToHTTPException(ArmorHTTPException):
     status_code = 422
     detail = "Дата заезда не может быть позже даты выезда"
+
+
+class FacilityAlreadyExistsHTTPException(ArmorHTTPException):
+    status_code = 409
+    detail = "Удобство уже существует"
 
 
 class FacilityNotFoundHTTPException(ArmorHTTPException):

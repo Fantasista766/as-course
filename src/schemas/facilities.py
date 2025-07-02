@@ -1,8 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FacilityAdd(BaseModel):
-    title: str
+    title: str = Field(..., min_length=2)
 
 
 class Facility(FacilityAdd):
