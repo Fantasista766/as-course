@@ -44,8 +44,8 @@ class AuthService(BaseService):
     async def get_user(self, user_id: int) -> str:
         return await self.db.users.get_one(id=user_id)  # type: ignore
 
-    async def logout_user(self, response: Response) -> None:
-        if "access_token" not in response.headers:
+    async def logout_user(self, request: Request, response: Response) -> None:
+        if "access_token" not in request.cookies:
             raise UserAlreadyLoggedOutException
         response.delete_cookie("access_token")
 

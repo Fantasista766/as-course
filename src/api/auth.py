@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, UserIdDep
@@ -55,9 +55,9 @@ async def login_user(
 
 
 @router.post("/logout")
-async def logout_user(response: Response):
+async def logout_user(request: Request, response: Response):
     try:
-        await AuthService().logout_user(response)
+        await AuthService().logout_user(request, response)
     except UserAlreadyLoggedOutException:
         raise UserAlreadyLoggedOutHTTPException
     return {"status": "OK"}
