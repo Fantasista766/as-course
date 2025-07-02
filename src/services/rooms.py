@@ -2,9 +2,11 @@ from datetime import date
 
 from src.exceptions import (
     FacilityNotFoundException,
+    ObjectAlreadyExistsException,
     ObjectToDeleteHasActiveRelationsException,
     ObjectNotFoundException,
     HotelNotFoundException,
+    RoomAlreadyExistsException,
     RoomNotFoundException,
     RoomToDeleteHasActiveBookingsException,
     check_date_from_before_date_to,
@@ -40,8 +42,12 @@ class RoomService(BaseService):
             await self.db.hotels.get_one(id=hotel_id)  # type: ignore
         except ObjectNotFoundException:
             raise HotelNotFoundException
+
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-        room = await self.db.rooms.add(_room_data)  # type: ignore
+        try:
+            room = await self.db.rooms.add(_room_data)  # type: ignore
+        except ObjectAlreadyExistsException:
+            raise RoomAlreadyExistsException
 
         if room_data.facilities_ids:
             rooms_facilities_data = [
@@ -64,9 +70,12 @@ class RoomService(BaseService):
         await self.db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)  # type: ignore
         if room_data.facilities_ids is not None:
             await FacilityService(self.db).get_facilities_with_check(room_data.facilities_ids)
-            await self.db.rooms_facilities.set_room_facilities(  # type: ignore
-                room_id, facilities_ids=room_data.facilities_ids
-            )
+            try:
+                await self.db.rooms_facilities.set_room_facilities(  # type: ignore
+                    room_id, facilities_ids=room_data.facilities_ids
+                )
+            except ObjectNotFoundException:
+                raise FacilityNotFoundException
 
         await self.db.commit()  # type: ignore
 

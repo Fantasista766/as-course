@@ -34,6 +34,25 @@ class JWTMissingException(ArmorException):
     detail = "Токен отсутствует"
 
 
+class PasswordTooShortException(ArmorException):
+    detail = "Пароль слишком короткий"
+
+
+class RoomPatchEmptyBodyException(ArmorException):
+    detail = "Необходимо указать хотя бы одно поле для обновления номера"
+
+
+class UserAlreadyLoggedOutException(ArmorException):
+    detail = "Вы ещё не аутентифицированы"
+
+
+class WrongPasswordException(ArmorException):
+    detail = "Неверный пароль"
+
+
+#########################################################################
+
+
 class ObjectAlreadyExistsException(ArmorException):
     detail = "Объект уже существует"
 
@@ -46,8 +65,15 @@ class HotelAlreadyExistsException(ObjectAlreadyExistsException):
     detail = "Отель уже существует"
 
 
+class RoomAlreadyExistsException(ObjectAlreadyExistsException):
+    detail = "Номер уже существует"
+
+
 class UserAlreadyExistsException(ObjectAlreadyExistsException):
     detail = "Пользователь уже существует"
+
+
+###############################################################
 
 
 class ObjectNotFoundException(ArmorException):
@@ -56,14 +82,6 @@ class ObjectNotFoundException(ArmorException):
 
 class FacilityNotFoundException(ObjectNotFoundException):
     detail = "Удобство не найдено"
-
-
-class PasswordTooShortException(ArmorException):
-    detail = "Пароль слишком короткий"
-
-
-class UserAlreadyLoggedOutException(ArmorException):
-    detail = "Вы ещё не аутентифицированы"
 
 
 class HotelNotFoundException(ObjectNotFoundException):
@@ -84,10 +102,6 @@ class ObjectToDeleteHasActiveRelationsException(ArmorException):
 
 class RoomToDeleteHasActiveBookingsException(ObjectToDeleteHasActiveRelationsException):
     detail = "Номер имеет активные бронирования"
-
-
-class WrongPasswordException(ArmorException):
-    detail = "Неверный пароль"
 
 
 ###########################################################################################
@@ -151,19 +165,29 @@ class JWTMissingHTTPException(ArmorHTTPException):
     detail = "Токен отсутствует"
 
 
-class PasswordTooShortHTTPException(ArmorException):
+class PasswordTooShortHTTPException(ArmorHTTPException):
     status_code = 422
     detail = "Пароль слишком короткий"
 
 
-class RoomToDeleteHasActiveBookingsHTTPException(ArmorException):
+class RoomAlreadyExistsHTTPException(ArmorHTTPException):
     status_code = 409
-    detail = "Удаляемый номер имеет активные бронирования"
+    detail = "Номер уже существует"
 
 
 class RoomNotFoundHTTPException(ArmorHTTPException):
     status_code = 404
     detail = "Номер не найден"
+
+
+class RoomPatchEmptyBodyHTTPException(ArmorHTTPException):
+    status_code = 422
+    detail = "Необходимо указать хотя бы одно поле для обновления номера"
+
+
+class RoomToDeleteHasActiveBookingsHTTPException(ArmorException):
+    status_code = 409
+    detail = "Удаляемый номер имеет активные бронирования"
 
 
 class UserAlreadyExistsHTTPException(ArmorHTTPException):

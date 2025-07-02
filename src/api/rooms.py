@@ -9,6 +9,12 @@ from src.exceptions import (
     FacilityNotFoundHTTPException,
     HotelNotFoundException,
     HotelNotFoundHTTPException,
+    NegativeFacilityIDException,
+    NegativeFacilityIDHTTPException,
+    RoomAlreadyExistsException,
+    RoomAlreadyExistsHTTPException,
+    RoomPatchEmptyBodyException,
+    RoomPatchEmptyBodyHTTPException,
     RoomToDeleteHasActiveBookingsException,
     RoomToDeleteHasActiveBookingsHTTPException,
     RoomNotFoundException,
@@ -84,6 +90,10 @@ async def create_room(
         raise HotelNotFoundHTTPException
     except FacilityNotFoundException:
         raise FacilityNotFoundHTTPException
+    except RoomAlreadyExistsException:
+        raise RoomAlreadyExistsHTTPException
+    except NegativeFacilityIDException:
+        raise NegativeFacilityIDHTTPException
 
 
 @router.put("/{room_id}", summary="Обновить данные о номере в отеле")
@@ -121,6 +131,8 @@ async def partial_update_room(
         raise RoomNotFoundHTTPException
     except FacilityNotFoundException:
         raise FacilityNotFoundHTTPException
+    except RoomPatchEmptyBodyException:
+        raise RoomPatchEmptyBodyHTTPException
 
 
 @router.delete("/{room_id}", summary="Удалить номер в отеле")

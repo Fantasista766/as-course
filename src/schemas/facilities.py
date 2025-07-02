@@ -6,15 +6,15 @@ class FacilityAdd(BaseModel):
 
 
 class Facility(FacilityAdd):
-    id: int
+    id: int = Field(..., ge=1)
 
     class Config:
         from_attributes = True
 
 
 class RoomFacilityAdd(BaseModel):
-    room_id: int
-    facility_id: int
+    room_id: int = Field(..., ge=1)
+    facility_id: int = Field(..., ge=1)
 
 
 class RoomFacility(RoomFacilityAdd):
