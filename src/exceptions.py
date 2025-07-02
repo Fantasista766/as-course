@@ -18,12 +18,16 @@ class DateFromBeforeDateToException(ArmorException):
     detail = "Дата заезда не может быть позже даты выезда"
 
 
-class InvalidJWTException(ArmorException):
-    detail = "Неверный токен"
+class FileNotAnImageException(ArmorException):
+    detail = "Файл не является изображением"
 
 
 class HotelPatchEmptyBodyException(ArmorException):
     detail = "Необходимо указать хотя бы одно поле для обновления отеля"
+
+
+class InvalidJWTException(ArmorException):
+    detail = "Неверный токен"
 
 
 class JWTMissingException(ArmorException):
@@ -115,6 +119,11 @@ class FacilityAlreadyExistsHTTPException(ArmorHTTPException):
 class FacilityNotFoundHTTPException(ArmorHTTPException):
     status_code = 404
     detail = "Удобство не найдено"
+
+
+class FileNotAnImageHTTPException(ArmorHTTPException):
+    status_code = 422
+    detail = "Файл не является изображением"
 
 
 class HotelAlreadyExistsHTTPException(ArmorHTTPException):

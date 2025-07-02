@@ -9,6 +9,8 @@ services:
       - my_network
     env_file:
       - .env
+    volumes:
+      - .:/app
 
   booking_celery_worker:
     container_name: booking_celery_worker
