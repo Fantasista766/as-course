@@ -22,6 +22,10 @@ class InvalidJWTException(ArmorException):
     detail = "Неверный токен"
 
 
+class HotelPatchEmptyBodyException(ArmorException):
+    detail = "Необходимо указать хотя бы одно поле для обновления отеля"
+
+
 class JWTMissingException(ArmorException):
     detail = "Токен отсутствует"
 
@@ -34,6 +38,14 @@ class FacilityAlreadyExistsException(ObjectAlreadyExistsException):
     detail = "Удобство уже существует"
 
 
+class HotelAlreadyExistsException(ObjectAlreadyExistsException):
+    detail = "Отель уже существует"
+
+
+class UserAlreadyExistsException(ObjectAlreadyExistsException):
+    detail = "Пользователь уже существует"
+
+
 class ObjectNotFoundException(ArmorException):
     detail = "Объект не найден"
 
@@ -44,10 +56,6 @@ class FacilityNotFoundException(ObjectNotFoundException):
 
 class PasswordTooShortException(ArmorException):
     detail = "Пароль слишком короткий"
-
-
-class UserAlreadyExistsException(ObjectAlreadyExistsException):
-    detail = "Пользователь уже существует"
 
 
 class UserAlreadyLoggedOutException(ArmorException):
@@ -107,6 +115,16 @@ class FacilityAlreadyExistsHTTPException(ArmorHTTPException):
 class FacilityNotFoundHTTPException(ArmorHTTPException):
     status_code = 404
     detail = "Удобство не найдено"
+
+
+class HotelAlreadyExistsHTTPException(ArmorHTTPException):
+    status_code = 409
+    detail = "Отель уже существует"
+
+
+class HotelPatchEmptyBodyHTTPException(ArmorHTTPException):
+    status_code = 422
+    detail = "Необходимо указать хотя бы одно поле для обновления отеля"
 
 
 class HotelNotFoundHTTPException(ArmorHTTPException):

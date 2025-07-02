@@ -2,7 +2,9 @@ from datetime import date
 
 from src.api.dependencies import PaginationDep
 from src.exceptions import (
+    HotelAlreadyExistsException,
     HotelNotFoundException,
+    ObjectAlreadyExistsException,
     ObjectNotFoundException,
     check_date_from_before_date_to,
 )
@@ -35,14 +37,19 @@ class HotelService(BaseService):
         return await self.db.hotels.get_one(id=hotel_id)  # type: ignore
 
     async def add_hotel(self, hotel_data: HotelAdd) -> Hotel:
-        hotel = await self.db.hotels.add(hotel_data)  # type: ignore
+        try:
+            hotel = await self.db.hotels.add(hotel_data)
+        except ObjectAlreadyExistsException:
+            raise HotelAlreadyExistsException
         await self.db.commit()  # type: ignore
         return Hotel.model_validate(hotel)
 
-    async def edit_hotel(
-        self, hotel_id: int, hotel_data: HotelAdd | HotelPatch, exclude_unset: bool = False
-    ) -> None:
-        await self.db.hotels.edit(hotel_data, id=hotel_id, exclude_unset=exclude_unset)  # type: ignore
+    async def edit_hotel(self, hotel_id: int, hotel_data: HotelAdd) -> None:
+        await self.db.hotels.edit(hotel_data, id=hotel_id)  # type: ignore
+        await self.db.commit()  # type: ignore
+
+    async def partial_edit_hotel(self, hotel_id: int, hotel_data: HotelPatch) -> None:
+        await self.db.hotels.edit(hotel_data, id=hotel_id, exclude_unset=True)  # type: ignore
         await self.db.commit()  # type: ignore
 
     async def delete_hotel(self, hotel_id: int) -> None:

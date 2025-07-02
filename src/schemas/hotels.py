@@ -1,9 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator
+
+from src.exceptions import HotelPatchEmptyBodyException
 
 
 class HotelAdd(BaseModel):
-    title: str
-    location: str
+    title: str = Field(..., min_length=5)
+    location: str = Field(..., min_length=10)
 
 
 class Hotel(HotelAdd):
@@ -11,5 +13,11 @@ class Hotel(HotelAdd):
 
 
 class HotelPatch(BaseModel):
-    title: str | None = None
-    location: str | None = None
+    title: str | None = Field(None, min_length=5)
+    location: str | None = Field(None, min_length=10)
+
+    @model_validator(mode="after")
+    def at_least_one_field(cls, model):
+        if not model.title and not model.location:
+            raise HotelPatchEmptyBodyException
+        return model

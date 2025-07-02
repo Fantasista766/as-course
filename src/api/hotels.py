@@ -5,6 +5,10 @@ from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep, PaginationDep
 from src.exceptions import (
+    HotelAlreadyExistsException,
+    HotelAlreadyExistsHTTPException,
+    HotelPatchEmptyBodyException,
+    HotelPatchEmptyBodyHTTPException,
     HotelNotFoundHTTPException,
     ObjectNotFoundException,
 )
@@ -63,7 +67,10 @@ async def create_hotel(
         }
     ),
 ) -> dict[str, str | Hotel]:
-    hotel = await HotelService(db).add_hotel(hotel_data)
+    try:
+        hotel = await HotelService(db).add_hotel(hotel_data)
+    except HotelAlreadyExistsException:
+        raise HotelAlreadyExistsHTTPException
     return {"status": "OK", "data": hotel}
 
 
@@ -87,10 +94,12 @@ async def partial_update_hotel(
     hotel_data: HotelPatch,
 ) -> dict[str, str]:
     try:
-        await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=True)
+        await HotelService(db).partial_edit_hotel(hotel_id, hotel_data)
         return {"status": "OK"}
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
+    except HotelPatchEmptyBodyException:
+        raise HotelPatchEmptyBodyHTTPException
 
 
 @router.delete("/{hotel_id}", summary="Удалить отель")
