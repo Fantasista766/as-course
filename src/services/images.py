@@ -22,6 +22,6 @@ class ImageService(BaseService):
         background_tasks.add_task(resize_image, image_path)
 
     def validate_file_extension(self, file: UploadFile) -> None:
-        ext = Path(file.filename).suffix.lower()
+        ext = Path(file.filename).suffix.lower()  # type: ignore
         if ext not in ALLOWED_EXTENSIONS:
             raise FileNotAnImageException

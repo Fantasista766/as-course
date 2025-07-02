@@ -38,7 +38,7 @@ class HotelService(BaseService):
 
     async def add_hotel(self, hotel_data: HotelAdd) -> Hotel:
         try:
-            hotel = await self.db.hotels.add(hotel_data)
+            hotel = await self.db.hotels.add(hotel_data)  # type: ignore
         except ObjectAlreadyExistsException:
             raise HotelAlreadyExistsException
         await self.db.commit()  # type: ignore

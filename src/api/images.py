@@ -8,7 +8,7 @@ router = APIRouter(prefix="/images", tags=["Изображения отелей"
 
 
 @router.post("/")
-def upload_image(file: UploadFile, background_tasks: BackgroundTasks) -> None:
+def upload_image(file: UploadFile, background_tasks: BackgroundTasks) -> dict[str, str]:
     try:
         ImageService().upload_image(file, background_tasks)
     except FileNotAnImageException:
