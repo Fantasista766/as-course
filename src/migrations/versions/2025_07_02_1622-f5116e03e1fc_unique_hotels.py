@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.create_constraint(op.f("hotels_location_key"), "hotels", type_="unique")
+    op.create_unique_constraint("hotels_location_key", "hotels", ["location"])
 
 
 def downgrade() -> None:

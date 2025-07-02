@@ -25,4 +25,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint(None, "facilities", type_="unique")
+    op.drop_constraint(None, "facilities", type_="unique")  # type: ignore
