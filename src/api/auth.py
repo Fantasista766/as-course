@@ -9,6 +9,8 @@ from src.exceptions import (
     PasswordTooShortHTTPException,
     UserAlreadyExistsException,
     UserAlreadyExistsHTTPException,
+    UserAlreadyLoggedOutException,
+    UserAlreadyLoggedOutHTTPException,
     UserNotFoundException,
     UserNotFoundHTTPException,
     WrongPasswordException,
@@ -54,7 +56,10 @@ async def login_user(
 
 @router.post("/logout")
 async def logout_user(response: Response):
-    await AuthService().logout_user(response)
+    try:
+        await AuthService().logout_user(response)
+    except UserAlreadyLoggedOutException:
+        raise UserAlreadyLoggedOutHTTPException
     return {"status": "OK"}
 
 

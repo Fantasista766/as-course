@@ -10,10 +10,8 @@ from src.exceptions import (
     JWTMissingException,
     InvalidJWTException,
     ObjectAlreadyExistsException,
-    ObjectNotFoundException,
-    PasswordTooShortException,
     UserAlreadyExistsException,
-    UserNotFoundException,
+    UserAlreadyLoggedOutException,
     WrongPasswordException,
 )
 from src.schemas.users import UserAdd, UserLogin, UserRegister
@@ -24,8 +22,6 @@ class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def register_user(self, user_data: UserRegister) -> None:
-        if len(user_data.password) < 8:
-            raise PasswordTooShortException
         hashed_password = self.hash_password(user_data.password)
         new_user_data = UserAdd(
             first_name=user_data.first_name,
@@ -41,17 +37,16 @@ class AuthService(BaseService):
         await self.db.commit()  # type: ignore
 
     async def login_user(self, user_data: UserLogin) -> str:
-        try:
-            user = await self.db.users.get_user_with_hashed_password(email=user_data.email)  # type: ignore
-            self.verify_password(user_data.password, user.hashed_password)
-            return self.create_access_token({"user_id": user.id})
-        except ObjectNotFoundException:
-            raise UserNotFoundException
+        user = await self.db.users.get_user_with_hashed_password(email=user_data.email)  # type: ignore
+        self.verify_password(user_data.password, user.hashed_password)
+        return self.create_access_token({"user_id": user.id})
 
     async def get_user(self, user_id: int) -> str:
         return await self.db.users.get_one(id=user_id)  # type: ignore
 
     async def logout_user(self, response: Response) -> None:
+        if "access_token" not in response.headers:
+            raise UserAlreadyLoggedOutException
         response.delete_cookie("access_token")
 
     def get_token(self, request: Request) -> str:

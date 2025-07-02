@@ -34,6 +34,10 @@ class ObjectNotFoundException(ArmorException):
     detail = "Объект не найден"
 
 
+class FacilityNotFoundException(ObjectNotFoundException):
+    detail = "Удобство не найдено"
+
+
 class PasswordTooShortException(ArmorException):
     detail = "Пароль слишком короткий"
 
@@ -42,8 +46,8 @@ class UserAlreadyExistsException(ObjectAlreadyExistsException):
     detail = "Пользователь уже существует"
 
 
-class FacilityNotFoundException(ObjectNotFoundException):
-    detail = "Удобство не найдено"
+class UserAlreadyLoggedOutException(ArmorException):
+    detail = "Вы ещё не аутентифицированы"
 
 
 class HotelNotFoundException(ObjectNotFoundException):
@@ -129,6 +133,11 @@ class RoomNotFoundHTTPException(ArmorHTTPException):
 class UserAlreadyExistsHTTPException(ArmorHTTPException):
     status_code = 409
     detail = "Пользователь с таким email уже существует"
+
+
+class UserAlreadyLoggedOutHTTPException(ArmorHTTPException):
+    status_code = 409
+    detail = "Вы ещё не аутентифицированы"
 
 
 class UserNotFoundHTTPException(ArmorHTTPException):
