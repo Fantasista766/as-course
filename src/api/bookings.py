@@ -5,6 +5,9 @@ from src.api.dependencies import DBDep, UserIdDep
 from src.exceptions import (
     AllRoomsAreBookedException,
     AllRoomsAreBookedHTTPException,
+    RoomNotFoundException,
+    RoomNotFoundHTTPException,
+    check_date_from_before_date_to,
 )
 from src.schemas.bookings import Booking, BookingAdd
 from src.services.bookings import BookingService
@@ -41,8 +44,11 @@ async def create_booking(
         }
     ),
 ) -> dict[str, str | Booking]:
+    check_date_from_before_date_to(booking_data.date_from, booking_data.date_to)
     try:
         booking = await BookingService(db).add_booking(user_id, booking_data)
         return {"status": "OK", "data": Booking.model_validate(booking)}
     except AllRoomsAreBookedException:
         raise AllRoomsAreBookedHTTPException
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
