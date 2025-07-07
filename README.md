@@ -47,3 +47,18 @@ docker run --name booking_nginx \
    --network=my_network \
    -d -p 443:443 nginx
 ```
+
+Запуск раннера
+```
+docker run -d --name gitlab-runner --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:alpine
+```
+
+Регистрация раннера
+```
+docker run --rm -it \
+    -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+    gitlab/gitlab-runner:alpine register
+```
