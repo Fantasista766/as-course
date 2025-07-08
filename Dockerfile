@@ -16,6 +16,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT ["alembic", "upgrade", "head"]
+ENTRYPOINT ["alembic", "upgrade", "head;"]
 
 CMD ["python", "src/main.py"]
