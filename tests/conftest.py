@@ -81,9 +81,9 @@ async def register_user(setup_database: Callable[..., Any], ac: AsyncClient):
         "/auth/register",
         json={
             "email": "kot@pes.com",
-            "password": "1234",
-            "first_name": "A",
-            "last_name": "B",
+            "password": "12341234",
+            "first_name": "Alan",
+            "last_name": "Beber",
         },
     )
     assert response.status_code == 200
@@ -95,7 +95,7 @@ async def authenticated_ac(register_user: Callable[..., Any], ac: AsyncClient):
         "/auth/login",
         json={
             "email": "kot@pes.com",
-            "password": "1234",
+            "password": "12341234",
         },
     )
     assert "access_token" in ac.cookies

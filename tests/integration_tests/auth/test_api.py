@@ -5,10 +5,10 @@ import pytest
 @pytest.mark.parametrize(
     "email, password, first_name, last_name, status_code",
     [
-        ("kot@pes.com", "1234", "A", "B", 409),
-        ("kot123@pes.com", "1234", "A", "B", 200),
+        ("kot@pes.com", "123324234324", "AB", "BA", 409),  # пользователь существует
+        ("kot123@pes.com", "1234", "AB", "AB", 422),  # короткий пароль
         ("dfasdf@pes.com", "1342sdfaef234", "Alna", "Bumaye", 200),
-        ("kotcom", "1234", "A", "B", 422),
+        ("kotcom", "123выавфыавыф4", "AB", "AB", 422),  # невалидный email
     ],
 )
 async def test_auth_flow(
