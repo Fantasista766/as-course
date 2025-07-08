@@ -5,9 +5,9 @@ RUN apt-get update \
  && apt-get install -y curl gnupg ca-certificates \ 
  && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \ 
  && apt-get install -y nodejs \ 
- && npm install -g pyright \ 
- && apt-get clean \ 
- && rm -rf /var/lib/apt/lists/*
+ && npm install -g pyright
+#  && apt-get clean \ 
+#  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
