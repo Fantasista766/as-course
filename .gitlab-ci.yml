@@ -16,12 +16,12 @@ build-job:
 lint-job:
   stage: lint_format
   script:
-    - ruff check
+    - docker run booking-api-image --rm --network my_network ruff check
 
 format-job:
   stage: lint_format
   script:
-    - ruff format
+    - docker run booking-api-image --rm --network my_network ruff format
 
 migrations-job:
   stage: migrations
