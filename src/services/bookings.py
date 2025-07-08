@@ -12,10 +12,10 @@ from src.services.rooms import RoomService
 
 class BookingService(BaseService):
     async def get_all_bookings(self) -> list[Booking]:
-        return await self.db.bookings.get_all() # type: ignore
+        return await self.db.bookings.get_all()  # type: ignore
 
     async def get_user_bookings(self, user_id: int) -> list[Booking]:
-        return await self.db.bookings.get_filtered(user_id=user_id) # type: ignore
+        return await self.db.bookings.get_filtered(user_id=user_id)  # type: ignore
 
     async def add_booking(self, user_id: int, booking_data: BookingAdd) -> Booking:
         room_data = await RoomService(self.db).get_room_with_check(booking_data.room_id)
@@ -27,8 +27,8 @@ class BookingService(BaseService):
             **booking_data.model_dump(),
         )
         try:
-            booking = await self.db.bookings.add_booking(_booking_data, hotel_data.id) # type: ignore
-            await self.db.commit() # type: ignore
+            booking = await self.db.bookings.add_booking(_booking_data, hotel_data.id)  # type: ignore
+            await self.db.commit()  # type: ignore
             return booking
         except AllRoomsAreBookedException:
             raise AllRoomsAreBookedHTTPException
