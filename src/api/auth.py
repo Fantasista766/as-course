@@ -54,7 +54,7 @@ async def login_user(
         raise WrongPasswordHTTPException
 
 
-@router.post("/logout")
+@router.post("/logout", summary="Выход из системы")
 async def logout_user(request: Request, response: Response):
     try:
         await AuthService().logout_user(request, response)
@@ -63,7 +63,7 @@ async def logout_user(request: Request, response: Response):
     return {"status": "OK"}
 
 
-@router.get("/me")
+@router.get("/me", summary="☻ Мой профиль")
 @cache(expire=10)
 async def get_me(db: DBDep, user_id: UserIdDep):
     try:
