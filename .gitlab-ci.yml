@@ -5,10 +5,9 @@ stages:
 build-job:
   stage: build
   script:
-    - echo "Compile complete."
+    - docker build -t booking-api-image .
 
 deploy-job:
   stage: deploy
-  environment: production
   script:
-    - echo "Application successfully deployed."
+    - docker compose up -d
