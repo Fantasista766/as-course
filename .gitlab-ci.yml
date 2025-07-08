@@ -16,17 +16,17 @@ build-job:
 lint-job:
   stage: lint_format
   script:
-    - docker run --rm booking-api-image ruff check
+    - docker run --rm --network my_network booking-api-image ruff check
 
 format-job:
   stage: lint_format
   script:
-    - docker run --rm booking-api-image ruff format --check
+    - docker run --rm --network my_network booking-api-image ruff format --check
 
 typecheck-job:
   stage: lint_format
   script:
-    - docker run --rm booking-api-image pyright
+    - docker run --rm --network my_network booking-api-image pyright
 
 migrations-job:
   stage: migrations
