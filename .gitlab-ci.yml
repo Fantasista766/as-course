@@ -23,6 +23,12 @@ format-job:
   script:
     - docker run --rm --network my_network booking-api-image ruff format --check
 
+typecheck-job:
+  stage: lint_format
+  script:
+    - docker run --rm --network my_network booking-api-image pyright
+
+
 migrations-job:
   stage: migrations
   script: 
