@@ -4,8 +4,6 @@ services:
     image: booking-api-image:latest
     networks:
       - my_network
-    volumes:
-      - .:/app
 
   booking_celery_worker:
     container_name: booking_celery_worker
