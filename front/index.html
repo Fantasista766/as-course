@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Список отелей</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+      }
+      h1 {
+        margin-bottom: 1rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        padding: 0.5rem;
+        border-bottom: 1px solid #ddd;
+      }
+      .hotel-title {
+        font-weight: bold;
+      }
+      .hotel-location {
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Список отелей</h1>
+    <ul id="hotels-list">
+      <!-- Сюда будут вставляться отели -->
+    </ul>
+
+    <script>
+      async function loadHotels() {
+        const params = new URLSearchParams({
+          date_from: "2025-07-01",
+          date_to: "2025-07-07",
+        });
+        const url = `http://localhost:8000/hotels?${params.toString()}`;
+
+        try {
+          const res = await fetch(url);
+          if (!res.ok) {
+            throw new Error(`Ошибка загрузки: ${res.status} ${res.statusText}`);
+          }
+          const hotels = await res.json();
+          const list = document.getElementById("hotels-list");
+
+          if (hotels.length === 0) {
+            list.innerHTML = "<li>Отели не найдены за указанный период.</li>";
+            return;
+          }
+
+          hotels.forEach((hotel) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+            <span class="hotel-title">${hotel.title}</span><br/>
+            <span class="hotel-location">${hotel.location}</span>
+          `;
+            list.appendChild(li);
+          });
+        } catch (err) {
+          console.error(err);
+          document.getElementById(
+            "hotels-list"
+          ).innerHTML = `<li style="color: red;">Ошибка: ${err.message}</li>`;
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", loadHotels);
+    </script>
+  </body>
+</html>
