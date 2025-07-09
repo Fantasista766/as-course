@@ -8,7 +8,7 @@ from src.exceptions import (
     ObjectNotFoundException,
     check_date_from_before_date_to,
 )
-from src.schemas.hotels import Hotel, HotelAdd, HotelPatch
+from src.schemas.hotels import HotelDTO, HotelAddDTO, HotelPatchDTO
 from src.services.base import BaseService
 
 
@@ -33,22 +33,22 @@ class HotelService(BaseService):
             offset=(page - 1) * per_page,
         )
 
-    async def get_hotel(self, hotel_id: int) -> Hotel:
+    async def get_hotel(self, hotel_id: int) -> HotelDTO:
         return await self.db.hotels.get_one(id=hotel_id)  # type: ignore
 
-    async def add_hotel(self, hotel_data: HotelAdd) -> Hotel:
+    async def add_hotel(self, hotel_data: HotelAddDTO) -> HotelDTO:
         try:
             hotel = await self.db.hotels.add(hotel_data)  # type: ignore
         except ObjectAlreadyExistsException:
             raise HotelAlreadyExistsException
         await self.db.commit()  # type: ignore
-        return Hotel.model_validate(hotel)
+        return HotelDTO.model_validate(hotel)
 
-    async def edit_hotel(self, hotel_id: int, hotel_data: HotelAdd) -> None:
+    async def edit_hotel(self, hotel_id: int, hotel_data: HotelAddDTO) -> None:
         await self.db.hotels.edit(hotel_data, id=hotel_id)  # type: ignore
         await self.db.commit()  # type: ignore
 
-    async def partial_edit_hotel(self, hotel_id: int, hotel_data: HotelPatch) -> None:
+    async def partial_edit_hotel(self, hotel_id: int, hotel_data: HotelPatchDTO) -> None:
         await self.db.hotels.edit(hotel_data, id=hotel_id, exclude_unset=True)  # type: ignore
         await self.db.commit()  # type: ignore
 
@@ -56,7 +56,7 @@ class HotelService(BaseService):
         await self.db.hotels.delete(id=hotel_id)  # type: ignore
         await self.db.commit()  # type: ignore
 
-    async def get_hotel_with_check(self, hotel_id: int) -> Hotel:
+    async def get_hotel_with_check(self, hotel_id: int) -> HotelDTO:
         try:
             return await self.db.hotels.get_one(id=hotel_id)  # type: ignore
         except ObjectNotFoundException:

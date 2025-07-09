@@ -4,7 +4,7 @@ from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM
 
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import FacilityDataMapper, RoomFacilityDataMapper
-from src.schemas.facilities import RoomFacilityAdd
+from src.schemas.facilities import RoomFacilityAddDTO
 
 
 class FacilitiesRepository(BaseRepository):
@@ -25,7 +25,7 @@ class RoomsFacilitiesRepository(BaseRepository):
         ids_to_insert = list(set(facilities_ids) - set(current_room_facilities_ids))
 
         room_facilities_to_add = [
-            RoomFacilityAdd(room_id=room_id, facility_id=f_id) for f_id in ids_to_insert
+            RoomFacilityAddDTO(room_id=room_id, facility_id=f_id) for f_id in ids_to_insert
         ]
 
         await self.add_batch(room_facilities_to_add)

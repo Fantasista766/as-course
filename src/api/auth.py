@@ -16,7 +16,7 @@ from src.exceptions import (
     WrongPasswordException,
     WrongPasswordHTTPException,
 )
-from src.schemas.users import UserRegister, UserLogin
+from src.schemas.users import UserRegisterDTO, UserLoginDTO
 from src.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутентификация"])
@@ -25,7 +25,7 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутент
 @router.post("/register", summary="Регистрация пользователя")
 async def register_user(
     db: DBDep,
-    user_data: UserRegister,
+    user_data: UserRegisterDTO,
 ) -> dict[str, str]:
     try:
         await AuthService(db).register_user(user_data)
@@ -39,7 +39,7 @@ async def register_user(
 @router.post("/login", summary="Аутентификация пользователя")
 async def login_user(
     db: DBDep,
-    user_data: UserLogin,
+    user_data: UserLoginDTO,
     response: Response,
 ) -> dict[str, str]:
     try:

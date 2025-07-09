@@ -13,8 +13,8 @@ from src.config import settings
 from src.database import Base, engine_null_pool, async_session_maker_null_pool
 from src.main import app
 from src.models import *
-from src.schemas.hotels import HotelAdd
-from src.schemas.rooms import RoomAdd
+from src.schemas.hotels import HotelAddDTO
+from src.schemas.rooms import RoomAddDTO
 from src.utils.db_manager import DBManager
 
 
@@ -58,8 +58,8 @@ async def load_data_to_db(setup_database: Callable[..., Any]):
     with open("tests/mock_rooms.json", "r") as f:
         rooms = json.load(f)
 
-    hotels_models = [HotelAdd.model_validate(hotel) for hotel in hotels]
-    rooms_models = [RoomAdd.model_validate(room) for room in rooms]
+    hotels_models = [HotelAddDTO.model_validate(hotel) for hotel in hotels]
+    rooms_models = [RoomAddDTO.model_validate(room) for room in rooms]
 
     async with DBManager(session_factory=async_session_maker_null_pool) as _db:
         await _db.hotels.add_batch(hotels_models)

@@ -7,7 +7,7 @@ from src.models.bookings import BookingsORM
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
 from src.repositories.utils import rooms_ids_for_booking
-from src.schemas.bookings import BookingAddRequest
+from src.schemas.bookings import BookingAddRequestDTO
 
 
 class BookingsRepository(BaseRepository):
@@ -19,7 +19,7 @@ class BookingsRepository(BaseRepository):
         res = await self.session.execute(query)
         return [self.mapper.map_to_domain_entity(booking) for booking in res.scalars().all()]
 
-    async def add_booking(self, _booking_data: BookingAddRequest, hotel_id: int):
+    async def add_booking(self, _booking_data: BookingAddRequestDTO, hotel_id: int):
         rooms_ids_to_get = rooms_ids_for_booking(
             date_from=_booking_data.date_from,
             date_to=_booking_data.date_to,

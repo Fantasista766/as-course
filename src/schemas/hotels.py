@@ -3,16 +3,16 @@ from pydantic import BaseModel, Field, model_validator
 from src.exceptions import HotelPatchEmptyBodyException
 
 
-class HotelAdd(BaseModel):
+class HotelAddDTO(BaseModel):
     title: str = Field(..., min_length=5)
     location: str = Field(..., min_length=10)
 
 
-class Hotel(HotelAdd):
+class HotelDTO(HotelAddDTO):
     id: int
 
 
-class HotelPatch(BaseModel):
+class HotelPatchDTO(BaseModel):
     title: str | None = Field(None, min_length=5)
     location: str | None = Field(None, min_length=10)
 

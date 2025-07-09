@@ -14,16 +14,16 @@ from src.exceptions import (
     UserAlreadyLoggedOutException,
     WrongPasswordException,
 )
-from src.schemas.users import UserAdd, UserLogin, UserRegister
+from src.schemas.users import UserAddDTO, UserLoginDTO, UserRegisterDTO
 from src.services.base import BaseService
 
 
 class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    async def register_user(self, user_data: UserRegister) -> None:
+    async def register_user(self, user_data: UserRegisterDTO) -> None:
         hashed_password = self.hash_password(user_data.password)
-        new_user_data = UserAdd(
+        new_user_data = UserAddDTO(
             first_name=user_data.first_name,
             last_name=user_data.last_name,
             email=user_data.email,
@@ -36,7 +36,7 @@ class AuthService(BaseService):
 
         await self.db.commit()  # type: ignore
 
-    async def login_user(self, user_data: UserLogin) -> str:
+    async def login_user(self, user_data: UserLoginDTO) -> str:
         user = await self.db.users.get_user_with_hashed_password(email=user_data.email)  # type: ignore
         self.verify_password(user_data.password, user.hashed_password)
         return self.create_access_token({"user_id": user.id})

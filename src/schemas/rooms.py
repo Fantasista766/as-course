@@ -1,10 +1,10 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.exceptions import RoomPatchEmptyBodyException
-from src.schemas.facilities import Facility
+from src.schemas.facilities import FacilityDTO
 
 
-class RoomAddRequest(BaseModel):
+class RoomAddRequestDTO(BaseModel):
     title: str = Field(..., min_length=2)
     description: str | None = None
     price: int = Field(..., ge=1)
@@ -12,7 +12,7 @@ class RoomAddRequest(BaseModel):
     facilities_ids: list[int] | None = None
 
 
-class RoomAdd(BaseModel):
+class RoomAddDTO(BaseModel):
     hotel_id: int
     title: str
     description: str | None = None
@@ -20,17 +20,17 @@ class RoomAdd(BaseModel):
     quantity: int
 
 
-class Room(RoomAdd):
+class RoomDTO(RoomAddDTO):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class RoomWithRels(Room):
-    facilities: list[Facility]
+class RoomWithRelsDTO(RoomDTO):
+    facilities: list[FacilityDTO]
 
 
-class RoomPatchRequest(BaseModel):
+class RoomPatchRequestDTO(BaseModel):
     title: str | None = Field(None, min_length=2)
     description: str | None = None
     price: int | None = Field(None, ge=1)
@@ -44,7 +44,7 @@ class RoomPatchRequest(BaseModel):
         return model
 
 
-class RoomPatch(BaseModel):
+class RoomPatchDTO(BaseModel):
     hotel_id: int | None = None
     title: str | None = Field(None, min_length=2)
     description: str | None = None

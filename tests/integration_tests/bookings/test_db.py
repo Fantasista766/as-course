@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from src.schemas.bookings import BookingAddRequest
+from src.schemas.bookings import BookingAddRequestDTO
 from src.utils.db_manager import DBManager
 
 
@@ -13,7 +13,7 @@ async def test_booking_crud(db: DBManager):
     create_date_to = date(year=2025, month=12, day=22)
 
     # create data
-    booking_data = BookingAddRequest(
+    booking_data = BookingAddRequestDTO(
         user_id=user_id,
         room_id=room_id,
         date_from=create_date_from,
@@ -33,7 +33,7 @@ async def test_booking_crud(db: DBManager):
     assert read_booking_data.create_at == create_at
 
     # update data
-    update_booking_data = BookingAddRequest(
+    update_booking_data = BookingAddRequestDTO(
         user_id=user_id,
         room_id=room_id,
         date_from=date(year=2026, month=1, day=12),

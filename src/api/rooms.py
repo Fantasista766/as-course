@@ -19,10 +19,10 @@ from src.exceptions import (
     RoomNotFoundHTTPException,
 )
 from src.schemas.rooms import (
-    Room,
-    RoomAddRequest,
-    RoomPatchRequest,
-    RoomWithRels,
+    RoomDTO,
+    RoomAddRequestDTO,
+    RoomPatchRequestDTO,
+    RoomWithRelsDTO,
 )
 from src.services.rooms import RoomService
 
@@ -39,13 +39,13 @@ async def get_rooms(
     hotel_id: int,
     date_from: date = Query(example="2025-06-19"),
     date_to: date = Query(example="2025-06-29"),
-) -> list[RoomWithRels]:
+) -> list[RoomWithRelsDTO]:
     return await RoomService(db).get_filtered_by_time(hotel_id, date_from, date_to)
 
 
 @router.get("/{room_id}", summary="Получить номер в отеле")
 @cache(expire=10)
-async def get_room(db: DBDep, hotel_id: int, room_id: int) -> RoomWithRels | None:
+async def get_room(db: DBDep, hotel_id: int, room_id: int) -> RoomWithRelsDTO | None:
     try:
         return await RoomService(db).get_one_with_rels(room_id, hotel_id)
     except RoomNotFoundException:
@@ -56,7 +56,7 @@ async def get_room(db: DBDep, hotel_id: int, room_id: int) -> RoomWithRels | Non
 async def create_room(
     hotel_id: int,
     db: DBDep,
-    room_data: RoomAddRequest = Body(
+    room_data: RoomAddRequestDTO = Body(
         openapi_examples={
             "1": {
                 "summary": "Luxury",
@@ -80,7 +80,7 @@ async def create_room(
             },
         }
     ),
-) -> dict[str, str | Room]:
+) -> dict[str, str | RoomDTO]:
     try:
         room = await RoomService(db).add_room(hotel_id, room_data)
         return {"status": "OK", "data": room}
@@ -94,7 +94,7 @@ async def create_room(
 
 @router.put("/{room_id}", summary="Обновить данные о номере в отеле")
 async def update_room(
-    db: DBDep, hotel_id: int, room_id: int, room_data: RoomAddRequest
+    db: DBDep, hotel_id: int, room_id: int, room_data: RoomAddRequestDTO
 ) -> dict[str, str]:
     try:
         await RoomService(db).edit_room(hotel_id, room_id, room_data)
@@ -116,7 +116,7 @@ async def partial_update_room(
     db: DBDep,
     hotel_id: int,
     room_id: int,
-    room_data: RoomPatchRequest,
+    room_data: RoomPatchRequestDTO,
 ) -> dict[str, str]:
     try:
         await RoomService(db).partial_edit_room(hotel_id, room_id, room_data)

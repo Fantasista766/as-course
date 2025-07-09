@@ -10,7 +10,7 @@ from src.models.rooms import RoomsORM
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
 from src.repositories.utils import rooms_ids_for_booking
-from src.schemas.rooms import RoomWithRels
+from src.schemas.rooms import RoomWithRelsDTO
 
 
 class RoomsRepository(BaseRepository):
@@ -19,7 +19,7 @@ class RoomsRepository(BaseRepository):
 
     async def get_filtered_by_time(
         self, hotel_id: int, date_from: date, date_to: date
-    ) -> list[RoomWithRels]:
+    ) -> list[RoomWithRelsDTO]:
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id)
 
         query = (
@@ -33,7 +33,7 @@ class RoomsRepository(BaseRepository):
             for model in result.unique().scalars().all()
         ]
 
-    async def get_one_with_rels(self, **filter_by: Any) -> RoomWithRels:
+    async def get_one_with_rels(self, **filter_by: Any) -> RoomWithRelsDTO:
         query = (
             select(self.model).options(selectinload(self.model.facilities)).filter_by(**filter_by)
         )

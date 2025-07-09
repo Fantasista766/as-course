@@ -12,7 +12,7 @@ from src.exceptions import (
     HotelNotFoundHTTPException,
     ObjectNotFoundException,
 )
-from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
+from src.schemas.hotels import HotelDTO, HotelPatchDTO, HotelAddDTO
 from src.services.hotels import HotelService
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -30,7 +30,7 @@ async def get_hotels(
     location: str | None = Query(None, description="Расположение отеля"),
     date_from: date = Query(example="2025-06-19"),
     date_to: date = Query(example="2025-06-29"),
-) -> list[Hotel]:
+) -> list[HotelDTO]:
     return await HotelService(db).get_filtered_by_time(
         pagination, title, location, date_from, date_to
     )
@@ -38,7 +38,7 @@ async def get_hotels(
 
 @router.get("/{hotel_id}", summary="Получить отель")
 @cache(expire=10)
-async def get_hotel(db: DBDep, hotel_id: int) -> Hotel:
+async def get_hotel(db: DBDep, hotel_id: int) -> HotelDTO:
     try:
         return await HotelService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
@@ -48,7 +48,7 @@ async def get_hotel(db: DBDep, hotel_id: int) -> Hotel:
 @router.post("/", summary="Создать новый отель")
 async def create_hotel(
     db: DBDep,
-    hotel_data: HotelAdd = Body(
+    hotel_data: HotelAddDTO = Body(
         openapi_examples={
             "1": {
                 "summary": "Sochi",
@@ -66,7 +66,7 @@ async def create_hotel(
             },
         }
     ),
-) -> dict[str, str | Hotel]:
+) -> dict[str, str | HotelDTO]:
     try:
         hotel = await HotelService(db).add_hotel(hotel_data)
     except HotelAlreadyExistsException:
@@ -75,7 +75,7 @@ async def create_hotel(
 
 
 @router.put("/{hotel_id}", summary="Обновить данные об отеле")
-async def update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAdd) -> dict[str, str]:
+async def update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAddDTO) -> dict[str, str]:
     try:
         await HotelService(db).edit_hotel(hotel_id, hotel_data)
         return {"status": "OK"}
@@ -91,7 +91,7 @@ async def update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAdd) -> dict[s
 async def partial_update_hotel(
     db: DBDep,
     hotel_id: int,
-    hotel_data: HotelPatch,
+    hotel_data: HotelPatchDTO,
 ) -> dict[str, str]:
     try:
         await HotelService(db).partial_edit_hotel(hotel_id, hotel_data)
